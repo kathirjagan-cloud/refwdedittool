@@ -14,11 +14,13 @@ namespace pdmrwordplugin
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             // Add code to get the settings
+            // Ends here
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
             // Add code to remove 
+            // Ends here
         }
 
         #region VSTO generated code
