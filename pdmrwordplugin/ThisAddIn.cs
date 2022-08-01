@@ -14,6 +14,7 @@ namespace pdmrwordplugin
         private void ThisAddIn_Startup(object sender, System.EventArgs e)
         {
             // Add code to get the settings
+
             // Ends here
         }
 
@@ -21,6 +22,11 @@ namespace pdmrwordplugin
         {
             // Add code to remove 
             // Ends here
+        }
+        
+        protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
+        {
+            return new pdmrRibbon();
         }
 
         #region VSTO generated code
