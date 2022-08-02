@@ -58,18 +58,17 @@ namespace pdmrwordplugin
 
         public void BtnClick(Office.IRibbonControl control)
         {
-            //"E:\citeproc-dotnet-master\citeproc-dotnet-master\Binaries\apa.csl"
-            var style = CiteProc.File.Load(@"E:\citeproc-dotnet-master\citeproc-dotnet-master\Binaries\apanew.csl");
+            AddReferenceUI();
+        }
 
-            var processor = Processor.Compile(style);
-            
-            processor.DataProviders = DataProvider.Load(@"E:\Parser\1.json", DataFormat.Json);
-            
-            var entries = processor.GenerateBibliography();
-
-            var plainText = entries.First().ToPlainText();
-            
-            var html = entries.First().ToHtml();
+        public void AddReferenceUI()
+        {
+            Microsoft.Office.Tools.CustomTaskPane objPane;
+            Usrtaskpane oCtrl = new Usrtaskpane();
+            objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl, ClsGlobals.PROJ_TITLE);
+            objPane.Control.Dock = System.Windows.Forms.DockStyle.Fill;
+            objPane.Width = 400;
+            objPane.Visible = true;
         }
 
         #endregion

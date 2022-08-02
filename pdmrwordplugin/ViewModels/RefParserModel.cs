@@ -1,5 +1,7 @@
-﻿using System;
+﻿using pdmrwordplugin.Models;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -15,13 +17,25 @@ namespace pdmrwordplugin.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
 
+        private ObservableCollection<ReferencePostions> _ProcessReferences;
+        public ObservableCollection<ReferencePostions> ProcessReferences 
+        {
+            get { return _ProcessReferences; }
+            set
+            {
+                _ProcessReferences = value;
+                RaisePropertyChanged("ProcessReferences");
+            }
+        }
+
         #region Initialize
 
         #endregion
 
-        public RefParserModel()
+        public RefParserModel(List<ReferencePostions> docreferences)
         {
-
+            if (docreferences != null)
+                ProcessReferences = new ObservableCollection<ReferencePostions>(docreferences);
         }
     }
 }

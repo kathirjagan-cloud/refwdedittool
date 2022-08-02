@@ -24,9 +24,7 @@ namespace pdmrwordplugin.Functions
                 {
                     paraindex++;
                     string parastyle = GetRangeStyleName(paragraph.Range);
-                    if (!string.IsNullOrEmpty(parastyle) &&
-                        parastyle == ClsGlobals.REF_PARA_STYLE &&
-                        !string.IsNullOrEmpty(paragraph.Range.Text))
+                    if (!string.IsNullOrEmpty(paragraph.Range.Text))
                     {
                         bookindex++;
                         objpos.Add(new ReferencePostions()

@@ -10,6 +10,7 @@ namespace pdmrwordplugin
     {
         public const string REF_PARSER_EXE = "AnystyleParser.exe";
         public const string REF_PARSER_PATH = @"E:\Parser\";
-        public const string REF_PARA_STYLE = "†Reference";
+        public const string REF_PARA_STYLE = "PReference";
+        public const string PROJ_TITLE = "PDMR Word Plug-in v1.0";
     }
 }
