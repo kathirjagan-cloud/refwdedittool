@@ -24,7 +24,7 @@ namespace pdmrwordplugin
         public ReferenceCtrl()
         {
             InitializeComponent();
-            List<ReferencePostions> references = Utilities.ClsRefPub.GetReferencesFromDoc();
+            List<ReferenceModel> references = Utilities.ClsRefPub.GetReferencesFromDoc();
             this.DataContext= new ViewModels.RefParserModel(references);
         }
     }

@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 
 namespace pdmrwordplugin.Models
 {
-    public class ReferencePostions
+    public class ReferenceModel
     {
         public string Reftext { get; set; }
         public string Refbookmark { get; set; }
         public long PIndex { get; set; }
-    }
-    public class RefModels
-    {
-
+        public string RefJSON { get; set; }
     }
 }

@@ -17,8 +17,8 @@ namespace pdmrwordplugin.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
 
-        private ObservableCollection<ReferencePostions> _ProcessReferences;
-        public ObservableCollection<ReferencePostions> ProcessReferences 
+        private ObservableCollection<ReferenceModel> _ProcessReferences;
+        public ObservableCollection<ReferenceModel> ProcessReferences 
         {
             get { return _ProcessReferences; }
             set
@@ -32,10 +32,14 @@ namespace pdmrwordplugin.ViewModels
 
         #endregion
 
-        public RefParserModel(List<ReferencePostions> docreferences)
+        public RefParserModel(List<ReferenceModel> docreferences)
         {
             if (docreferences != null)
-                ProcessReferences = new ObservableCollection<ReferencePostions>(docreferences);
+                ProcessReferences = new ObservableCollection<ReferenceModel>(docreferences);
+            Utilities.ClsRefPub.IParseReferencebyExe(docreferences).ContinueWith(t =>
+            {
+                var parsedref = t.Result;
+            });
         }
     }
 }

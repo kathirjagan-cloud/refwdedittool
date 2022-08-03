@@ -11,13 +11,13 @@ namespace pdmrwordplugin.Functions
     public static class ClsCommonUtils
     {
         // Get the reference details like text, bookmark //
-        public static List<ReferencePostions> GetReferenceDetails(Word.Document document, Word.Range Selectedrange = null)
+        public static List<ReferenceModel> GetReferenceDetails(Word.Document document, Word.Range Selectedrange = null)
         {
             try
             {
                 long paraindex = 0;
                 int bookindex = 0;
-                List<ReferencePostions> objpos = new List<ReferencePostions>();
+                List<ReferenceModel> objrefs = new List<ReferenceModel>();
                 Word.Range processrange = document.Range().Duplicate;
                 if (Selectedrange != null) { processrange = Selectedrange; }
                 foreach (Word.Paragraph paragraph in processrange.Paragraphs)
@@ -27,7 +27,7 @@ namespace pdmrwordplugin.Functions
                     if (!string.IsNullOrEmpty(paragraph.Range.Text))
                     {
                         bookindex++;
-                        objpos.Add(new ReferencePostions()
+                        objrefs.Add(new ReferenceModel()
                         {
                             Reftext = paragraph.Range.Text,
                             Refbookmark = "_REF_" + String.Format("{0:D4}", bookindex),
@@ -36,7 +36,7 @@ namespace pdmrwordplugin.Functions
                     }
                 }
                 processrange = null;
-                return objpos;
+                return objrefs;
             }
             catch
             {

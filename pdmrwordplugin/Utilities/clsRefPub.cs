@@ -1,6 +1,8 @@
-﻿using pdmrwordplugin.Models;
+﻿using Newtonsoft.Json.Linq;
+using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,11 +13,11 @@ namespace pdmrwordplugin.Utilities
 {
     public static class ClsRefPub
     {   
-        public static List<ReferencePostions> GetReferencesFromDoc()
+        public static List<ReferenceModel> GetReferencesFromDoc()
         {
             try
             {
-                List<ReferencePostions> objlist = null;
+                List<ReferenceModel> objlist = null;
                 Word.Document odoc = Globals.ThisAddIn.Application.ActiveDocument;
                 if (odoc == null) { return null; }
                 Word.Range orange = Globals.ThisAddIn.Application.Selection.Range.Duplicate;
@@ -25,7 +27,7 @@ namespace pdmrwordplugin.Utilities
                 {
                     if (MessageBox.Show(ClsMessages.REF_MESSAGE_2, ClsGlobals.PROJ_TITLE, MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
-                        objlist = new List<ReferencePostions>(Functions.ClsCommonUtils.GetReferenceDetails(odoc, orange));
+                        objlist = new List<ReferenceModel>(Functions.ClsCommonUtils.GetReferenceDetails(odoc, orange));
                         if (objlist != null && objlist.Count > 0) { return objlist; }
                         else
                         {
@@ -39,14 +41,67 @@ namespace pdmrwordplugin.Utilities
             catch { return null; }
         }
 
-        public static Task IParseReferencebyExe(List<ReferencePostions> reflists)
+        public static Task<List<ReferenceModel>> IParseReferencebyExe(List<ReferenceModel> reflists)
         {
             return Task.Run(() => ParseReferencebyExe(reflists));
         }
-        public static void ParseReferencebyExe(List<ReferencePostions> processreflists)
-        {
 
+        private static void RemoveTempFiles(string file1)
+        {
+            try
+            {
+                if (System.IO.File.Exists(file1)) { System.IO.File.Delete(file1); }
+            }
+            catch { }
         }
+
+        public static List<ReferenceModel> ParseReferencebyExe(List<ReferenceModel> processreflists)
+        {
+            try
+            {
+                string outJson = System.IO.Path.GetTempPath() + "refwordprocessed.json";
+                string reffilepath = System.IO.Path.GetTempPath() + @"refword.txt";
+                RemoveTempFiles(outJson);
+                RemoveTempFiles(reffilepath);
+                List<ReferenceModel> references = new List<ReferenceModel>();
+                string reftext = string.Join(Environment.NewLine, processreflists.Select(x => x.Reftext));
+                System.IO.File.WriteAllText(reffilepath, reftext, Encoding.UTF8);
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    CreateNoWindow = false,
+                    UseShellExecute = false,
+                    FileName = "cmd.exe",
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Arguments = @"/c " + ClsGlobals.REF_PARSER_PATH + ClsGlobals.REF_PARSER_EXE + " > \"" + outJson + "\""
+                };
+                using (Process exeProcess = Process.Start(startInfo))
+                {
+                    exeProcess.WaitForExit();
+                }
+                //Read references
+                if (System.IO.File.Exists(outJson))
+                {
+                    string jsonString = System.IO.File.ReadAllText(outJson);
+                    var getResults = JArray.Parse(jsonString);
+                    int jindex = -1;
+                    foreach(var reference in processreflists)
+                    {
+                        jindex++;
+                        references.Add(new ReferenceModel()
+                        {
+                            Reftext = reference.Reftext,
+                            Refbookmark = reference.Refbookmark,
+                            RefJSON = getResults[jindex].ToString(),
+                            PIndex = reference.PIndex
+                        });  
+                    }
+                }
+                //Ends here
+                return references;
+            }
+            catch { return null; }
+        }
+
         public static void ParseReferencebyOnlinePub()
         {
 
