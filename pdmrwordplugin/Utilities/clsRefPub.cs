@@ -68,7 +68,7 @@ namespace pdmrwordplugin.Utilities
                 System.IO.File.WriteAllText(reffilepath, reftext, Encoding.UTF8);
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
-                    CreateNoWindow = false,
+                    CreateNoWindow = true,
                     UseShellExecute = false,
                     FileName = "cmd.exe",
                     WindowStyle = ProcessWindowStyle.Hidden,

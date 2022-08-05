@@ -28,17 +28,30 @@ namespace pdmrwordplugin.ViewModels
             }
         }
 
+        private bool _showprogress;
+        public bool Showprogress
+        {
+            get { return _showprogress; }
+            set
+            {
+                _showprogress = value;
+                RaisePropertyChanged("Showprogress");
+            }
+        }
+
         #region Initialize
 
         #endregion
 
         public RefParserModel(List<ReferenceModel> docreferences)
-        {
-            if (docreferences != null)
-                ProcessReferences = new ObservableCollection<ReferenceModel>(docreferences);
+        {  
+            ProcessReferences = new ObservableCollection<ReferenceModel>();
+            Showprogress = true;
             Utilities.ClsRefPub.IParseReferencebyExe(docreferences).ContinueWith(t =>
             {
-                var parsedref = t.Result;
+                Showprogress = false;
+                if (!t.IsFaulted && t.Result != null)
+                    ProcessReferences = new ObservableCollection<ReferenceModel>(t.Result);
             });
         }
     }

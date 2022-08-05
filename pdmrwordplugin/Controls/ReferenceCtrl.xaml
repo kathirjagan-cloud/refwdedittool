@@ -3,16 +3,69 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:pdmrwordplugin"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <ListBox ItemsSource="{Binding ProcessReferences}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Reftext}"/>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+             xmlns:local="clr-namespace:pdmrwordplugin" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
+             mc:Ignorable="d" FontFamily="Segoe UI"
+             d:DesignHeight="450" d:DesignWidth="350" Background="White">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Lime" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="350"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderThickness="0 0 0 1" Height="24" VerticalAlignment="Top" Padding="2" Background="DarkGreen" >
+            <TextBlock Text="References Styling" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
+        </Border>
+        <Grid Grid.Row="1" Margin="2" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <ComboBox x:Name="cmbStyles" VerticalAlignment="Top" Grid.Row="0" Height="30" MinWidth="200" 
+                      materialDesign:TextFieldAssist.PrefixText="Reference Style: "
+                      HorizontalAlignment="Left" Style="{StaticResource MaterialDesignOutlinedComboBox}" Padding="5" />
+            <GroupBox Grid.Row="1" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
+                      materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
+                <GroupBox.Header>
+                    <TextBlock Text="Original Reference" FontWeight="SemiBold"/>
+                </GroupBox.Header>
+                <TextBox Style="{StaticResource MaterialDesignTextBox}" TextWrapping="Wrap" BorderBrush="{x:Null}"/>
+            </GroupBox>
+            <GroupBox Grid.Row="2" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
+                      materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
+                <GroupBox.Header>
+                    <TextBlock Text="Compared Reference" FontWeight="SemiBold"/>
+                </GroupBox.Header>
+                <TextBox Style="{StaticResource MaterialDesignTextBox}" TextWrapping="Wrap" BorderBrush="{x:Null}"/>
+            </GroupBox>
+            <GroupBox Grid.Row="3" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
+                      materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
+                <GroupBox.Header>
+                    <TextBlock Text="Structured Reference" FontWeight="SemiBold"/>
+                </GroupBox.Header>
+                <TabControl>
+                    <TabItem Header="Parsed">
+                        <TextBox Style="{StaticResource MaterialDesignTextBox}" TextWrapping="Wrap" BorderBrush="{x:Null}"/>
+                    </TabItem>
+                    <TabItem Header="Pubmed">
+                        <TextBox Style="{StaticResource MaterialDesignTextBox}" TextWrapping="Wrap" BorderBrush="{x:Null}"/>
+                    </TabItem>
+                    <TabItem Header="Cross Ref">
+                        <TextBox Style="{StaticResource MaterialDesignTextBox}" TextWrapping="Wrap" BorderBrush="{x:Null}"/>
+                    </TabItem>
+                </TabControl>
+            </GroupBox>
+        </Grid>
+        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" VerticalAlignment="Center" Width="50" Height="50" Visibility="{Binding Showprogress,Converter={StaticResource BooleanToVisibilityConverter}}"/>
     </Grid>
 </UserControl>

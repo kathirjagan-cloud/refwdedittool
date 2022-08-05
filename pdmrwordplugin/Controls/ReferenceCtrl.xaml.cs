@@ -24,6 +24,8 @@ namespace pdmrwordplugin
         public ReferenceCtrl()
         {
             InitializeComponent();
+            cmbStyles.Items.Add("Test");
+            cmbStyles.Items.Add("Mani good of having example right");
             List<ReferenceModel> references = Utilities.ClsRefPub.GetReferencesFromDoc();
             this.DataContext= new ViewModels.RefParserModel(references);
         }
