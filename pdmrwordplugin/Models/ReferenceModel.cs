@@ -12,5 +12,8 @@ namespace pdmrwordplugin.Models
         public string Refbookmark { get; set; }
         public long PIndex { get; set; }
         public string RefJSON { get; set; }
+
+        public string RefStrucText { get; set; }
+        public string RefCompText { get; set; }
     }
 }
