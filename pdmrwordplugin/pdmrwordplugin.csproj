@@ -188,6 +188,7 @@
       <DependentUpon>ReferenceCtrl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RelayCommand.cs" />
+    <Compile Include="RichTextBoxHelper.cs" />
     <Compile Include="Taskpane\Usrtaskpane.cs">
       <SubType>UserControl</SubType>
     </Compile>

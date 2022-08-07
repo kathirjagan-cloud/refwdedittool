@@ -6,8 +6,7 @@
              xmlns:local="clr-namespace:pdmrwordplugin" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
              mc:Ignorable="d" FontFamily="Segoe UI"
-             d:DesignHeight="480" d:DesignWidth="350" Background="White"
-    xmlns:wpf="clr-namespace:MaterialDesignThemes.Wpf;assembly=MaterialDesignThemes.Wpf">
+             d:DesignHeight="480" d:DesignWidth="350" Background="White">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -40,8 +39,7 @@
                 <GroupBox.Header>
                     <TextBlock Text="Original Reference" FontWeight="SemiBold"/>
                 </GroupBox.Header>
-                <RichTextBox Style="{StaticResource MaterialDesignRichTextBox}" BorderBrush="{x:Null}" >
-                </RichTextBox>
+                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}"/>
             </GroupBox>
             <GroupBox Grid.Row="2" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
@@ -100,7 +98,7 @@
         </Grid>
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="100"/>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>

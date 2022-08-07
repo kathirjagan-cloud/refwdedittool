@@ -92,7 +92,8 @@ namespace pdmrwordplugin.Utilities
                             Reftext = reference.Reftext,
                             Refbookmark = reference.Refbookmark,
                             RefJSON = getResults[jindex].ToString(),
-                            PIndex = reference.PIndex
+                            PIndex = reference.PIndex,
+                            ReftextHtml = reference.ReftextHtml
                         });  
                     }
                 }

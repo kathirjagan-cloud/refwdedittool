@@ -13,6 +13,7 @@ namespace pdmrwordplugin.Models
         public long PIndex { get; set; }
         public string RefJSON { get; set; }
 
+        public string ReftextHtml { get; set; }
         public string RefStrucText { get; set; }
         public string RefCompText { get; set; }
     }

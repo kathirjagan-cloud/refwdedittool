@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace pdmrwordplugin.Functions
@@ -31,7 +32,8 @@ namespace pdmrwordplugin.Functions
                         {
                             Reftext = paragraph.Range.Text,
                             Refbookmark = "_REF_" + String.Format("{0:D4}", bookindex),
-                            PIndex = paraindex
+                            PIndex = paraindex,
+                            ReftextHtml = ""
                         });
                     }
                 }
@@ -43,7 +45,7 @@ namespace pdmrwordplugin.Functions
                 return null;
             }
         }
-
+        
         public static string GetRangeStyleName(Word.Range range)
         {
             // Get the style of the paragraph
