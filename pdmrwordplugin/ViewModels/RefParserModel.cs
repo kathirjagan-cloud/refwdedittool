@@ -1,4 +1,5 @@
-﻿using pdmrwordplugin.Models;
+﻿using DocumentFormat.OpenXml.Packaging;
+using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,6 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Word = Microsoft.Office.Interop.Word;
+using DOCXML = DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Wordprocessing;
+using OpenXmlPowerTools;
 
 namespace pdmrwordplugin.ViewModels
 {
@@ -52,9 +56,66 @@ namespace pdmrwordplugin.ViewModels
                 if (value != null)
                 {
                     Globals.ThisAddIn.Application.Selection.Paragraphs.First.Range.Select();
-                    value.ReftextHtml = GetFormatText(Globals.ThisAddIn.Application.Selection.Range.Duplicate);
+                    value.ReftextHtml = GetFormatTextOpenXML(Globals.ThisAddIn.Application.Selection.Range.Duplicate);
                 }
                 RaisePropertyChanged("SelReference");
+            }
+        }
+
+        private static string GetFormatTextOpenXML(Word.Range orange)
+        {
+            string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
+            string flowdocend = "</FlowDocument>";
+            try
+            {
+                string strXaml = "";
+                string FlOpenXml = System.IO.Path.GetTempPath() + "Openflat.xml";
+                orange.ExportFragment(FlOpenXml, Word.WdSaveFormat.wdFormatXMLDocument);
+                WordprocessingDocument document = WordprocessingDocument.Open(FlOpenXml, false);
+                Body docbody = document.MainDocumentPart.Document.Body;
+                foreach (DOCXML.Wordprocessing.Paragraph para in docbody.OfType<DOCXML.Wordprocessing.Paragraph>())
+                {
+                    foreach (var run in para.Descendants())
+                    {
+                        string runtext = "";
+                        if (run.XName == W.r)
+                        {
+                            if (!run.OuterXml.Contains("<w:delText"))
+                            {
+                                foreach (var text in run.Descendants<Text>())
+                                {
+                                    if (text.OuterXml.Contains("xml:space"))
+                                    {
+                                        if (text.OuterXml.Contains(" </w:t>"))
+                                        {
+                                            runtext += text.Text + " ";
+                                        }
+                                        else { runtext += " " + text.Text; }
+                                    }
+                                    else { runtext += text.Text; }
+                                }
+                            }
+                        }
+                        if (run.OuterXml.Contains("<w:b />") || run.OuterXml.Contains("<w:b/>"))
+                        {
+                            strXaml += "<Bold>" + runtext + "</Bold>";
+                        }
+                        if (run.OuterXml.Contains("<w:i />") || run.OuterXml.Contains("<w:i/>"))
+                        {
+                            strXaml += "<Italic>" + runtext + "</Italic>";
+                        }
+                        else
+                        {
+                            strXaml += runtext;
+                        }
+                    }
+                }
+                document.Close();
+                return flowdocstart + "<Paragraph>" + strXaml + "</Paragraph>" + flowdocend;
+            }
+            catch
+            {
+                return flowdocstart + "<Paragraph>" + orange.Text + "</Paragraph>" + flowdocend;
             }
         }
 
