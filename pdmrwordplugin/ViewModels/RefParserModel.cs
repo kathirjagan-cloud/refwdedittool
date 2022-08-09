@@ -46,6 +46,29 @@ namespace pdmrwordplugin.ViewModels
             }
         }
 
+        private int _SelTabIndex;
+        public int SelTabIndex
+        {
+            get { return _SelTabIndex; }
+            set
+            {
+                _SelTabIndex = value;
+                RaisePropertyChanged("SelTabIndex");
+                if (SelTabIndex == 1)
+                {
+                    Showprogress = true;
+                    Utilities.clsRefSearchOnline.ISearchPubmed(SelReference).ContinueWith(t =>
+                    {
+                        Showprogress = false;
+                        if(!t.IsFaulted && t.Result!=null)
+                        {
+                            string s = t.Result;
+                        }
+                    });
+                }
+            }
+        }
+
         private ReferenceModel _SelReference;
         public ReferenceModel SelReference
         {
@@ -84,15 +107,7 @@ namespace pdmrwordplugin.ViewModels
                             {
                                 foreach (var text in run.Descendants<Text>())
                                 {
-                                    if (text.OuterXml.Contains("xml:space"))
-                                    {
-                                        if (text.OuterXml.Contains(" </w:t>"))
-                                        {
-                                            runtext += text.Text + " ";
-                                        }
-                                        else { runtext += " " + text.Text; }
-                                    }
-                                    else { runtext += text.Text; }
+                                    runtext += text.Text;
                                 }
                             }
                         }
@@ -110,6 +125,7 @@ namespace pdmrwordplugin.ViewModels
                         }
                     }
                 }
+                strXaml = strXaml.Replace(" <", "\u2002<");
                 document.Close();
                 return flowdocstart + "<Paragraph>" + strXaml + "</Paragraph>" + flowdocend;
             }

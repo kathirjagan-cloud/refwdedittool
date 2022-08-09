@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:pdmrwordplugin" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
              mc:Ignorable="d" FontFamily="Segoe UI"
-             d:DesignHeight="480" d:DesignWidth="350" Background="White">
+             d:DesignHeight="500" d:DesignWidth="350" Background="White">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -19,7 +19,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="400"/>
-            <RowDefinition/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
         <Border Grid.Row="0" BorderThickness="0 0 0 1" Height="24" VerticalAlignment="Top" Padding="2" Background="DarkGreen" >
             <TextBlock Text="References Styling" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
@@ -39,21 +39,21 @@
                 <GroupBox.Header>
                     <TextBlock Text="Original Reference" FontWeight="SemiBold"/>
                 </GroupBox.Header>
-                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}"/>
+                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
             </GroupBox>
             <GroupBox Grid.Row="2" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
                 <GroupBox.Header>
                     <TextBlock Text="Compared Reference" FontWeight="SemiBold"/>
                 </GroupBox.Header>
-                <TextBox Style="{StaticResource MaterialDesignTextBox}" TextWrapping="Wrap" BorderBrush="{x:Null}"/>
+                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
             </GroupBox>
             <GroupBox Grid.Row="3" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
                 <GroupBox.Header>
                     <TextBlock Text="Structured Reference" FontWeight="SemiBold"/>
                 </GroupBox.Header>
-                <TabControl Background="{x:Null}" BorderBrush="{x:Null}" materialDesign:ShadowAssist.ShadowDepth="Depth1" materialDesign:ShadowAssist.ShadowEdges="All">
+                <TabControl Background="{x:Null}" BorderBrush="{x:Null}" materialDesign:ShadowAssist.ShadowDepth="Depth1" materialDesign:ShadowAssist.ShadowEdges="All" SelectedIndex="{Binding SelTabIndex}">
                     <TabControl.Resources>
                         <Style TargetType="TabItem">
                             <Setter Property="Template">
@@ -79,19 +79,19 @@
                         <TabItem.Header>
                             <TextBlock Text="Structured" FontWeight="DemiBold"/>
                         </TabItem.Header>
-                        <TextBox />
+                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
                             <TextBlock Text="Pubmed" FontWeight="DemiBold"/>
                         </TabItem.Header>
-                        <TextBox />
+                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
                             <TextBlock Text="CrossRef" FontWeight="DemiBold"/>
                         </TabItem.Header>
-                        <TextBox />
+                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
                     </TabItem>
                 </TabControl>
             </GroupBox>
