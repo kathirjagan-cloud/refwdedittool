@@ -182,7 +182,6 @@ namespace pdmrwordplugin.ViewModels
                 {
                     ProcessReferences = new ObservableCollection<ReferenceModel>(t.Result);
                     SelReference = ProcessReferences.FirstOrDefault();
-                    //SelReference.ReftextHtml = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""><Paragraph><Bold>Hello World!</Bold></Paragraph></FlowDocument>";
                 }
             });
         }
