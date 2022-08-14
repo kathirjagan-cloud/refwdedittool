@@ -106,15 +106,16 @@ namespace pdmrwordplugin.Utilities
             catch { return ""; }
         }
 
-        public static string GetBetterMatchRec(string pubxml, string orgreftext)
+        public static string GetBetterMatchRec(string pubxml, ReferenceModel cReference)
         {
             try
             {
-                string matchedelems = "";
+                string orgreftext = cReference.Reftext;
                 var xDoc = XDocument.Parse(pubxml);
                 var articles = from item in xDoc.Descendants("PubmedArticle") select item;
                 foreach (var article in articles)
                 {
+                    string matchedelems = "";
                     var authors = from item in article.Descendants("Author") select item;
                     foreach (var author in authors)
                     {
@@ -125,7 +126,7 @@ namespace pdmrwordplugin.Utilities
                         }
                     }
                     var pubdate = from item in article.Descendants("PubDate") select item;
-                    if (pubdate != null)
+                    if (pubdate != null && pubdate.Count() > 0)
                     {
                         var date = pubdate.FirstOrDefault().Element("Year");
                         if (date != null)
@@ -138,7 +139,7 @@ namespace pdmrwordplugin.Utilities
                         }
                     }
                     var pagination = from item in article.Descendants("MedlinePgn") select item;
-                    if (pagination != null)
+                    if (pagination != null && pagination.Count() > 0)
                     {
                         string firstpagenum = GetFirstPagenumber(pagination.FirstOrDefault().Value);
                         if (orgreftext.Contains(firstpagenum + "-") || orgreftext.Contains(firstpagenum + "\u2014"))
@@ -148,13 +149,22 @@ namespace pdmrwordplugin.Utilities
                         }
                     }
                     var volume = from item in article.Descendants("Volume") select item;
-                    if (volume != null)
+                    if (volume != null && volume.Count() > 0)
                     {
                         if (orgreftext.Contains(volume.FirstOrDefault().Value))
                         {
                             matchedelems += "$VolumeFound$";
                             orgreftext = orgreftext.Replace(volume.FirstOrDefault().Value, "");
                         }
+                    }
+                    var title = from item in article.Descendants("ArticleTitle") select item;
+                    if (title != null && title.Count() > 0)
+                    {
+                        if (orgreftext.ToLower().Contains(title.FirstOrDefault().Value.ToLower()))
+                        {
+                            matchedelems += "$TitleFound$";
+                        }
+                        double resmatch = Functions.ClsCommonUtils.CalculateSimilarity(title.FirstOrDefault().Value.ToLower(), cReference.title.ToLower());
                     }
                 }
                 return "";
@@ -180,11 +190,11 @@ namespace pdmrwordplugin.Utilities
             try
             {
                 ReferenceModel prcReference = ConsructPubQuery(sreference);
-                string[] queries = "<author>[au]+AND+<date>[dp]+AND+<volume>[volume]#<author>[au]+AND+<date>[dp]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[ta]".Split('#');
+                string[] queries = "<title>#<author>[au]+AND+<date>[dp]+AND+<volume>[volume]#<author>[au]+AND+<date>[dp]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[ta]".Split('#');
                 string resultJson = "";
                 foreach (string query in queries)
                 {
-                    string sQuery = "esearch.fcgi?db=pubmed&usehistory=y&retmax=10&retmode=json";
+                    string sQuery = "esearch.fcgi?db=pubmed&usehistory=y&retmax=25&retmode=json";
                     string strtemp = query;
                     if (prcReference.Authors != null && prcReference.Authors.Count > 0)
                     {   
@@ -197,6 +207,8 @@ namespace pdmrwordplugin.Utilities
                             strtemp = strtemp.Replace("<volume>", prcReference.volume);
                         if (query.Contains("<containertitle>"))
                             strtemp = strtemp.Replace("<containertitle>", prcReference.containertitle);
+                        if (query.Contains("<title>"))
+                            strtemp = strtemp.Replace("<title>", prcReference.title);
                         sQuery += "&term=" + strtemp;
                         HttpResponseMessage response = await searchclient.GetAsync(sQuery);
                         if (response.IsSuccessStatusCode)
@@ -212,7 +224,7 @@ namespace pdmrwordplugin.Utilities
                                     {
                                         string pubmedids = string.Join(",", refidlists);
                                         resultJson = await FetchPubmedContent(pubmedids);
-                                        string sBettermatch = GetBetterMatchRec(resultJson, prcReference.Reftext);
+                                        string sBettermatch = GetBetterMatchRec(resultJson, prcReference);
                                     }
                                 }
                             }
