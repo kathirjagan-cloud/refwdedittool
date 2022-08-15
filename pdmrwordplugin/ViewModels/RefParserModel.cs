@@ -13,6 +13,8 @@ using Word = Microsoft.Office.Interop.Word;
 using DOCXML = DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Wordprocessing;
 using OpenXmlPowerTools;
+using System.IO;
+using System.Management.Automation;
 
 namespace pdmrwordplugin.ViewModels
 {
@@ -23,6 +25,8 @@ namespace pdmrwordplugin.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
+
+        public RelayCommand NextReferenceCmd { set; get; }
 
         private ObservableCollection<ReferenceModel> _ProcessReferences;
         public ObservableCollection<ReferenceModel> ProcessReferences 
@@ -56,15 +60,7 @@ namespace pdmrwordplugin.ViewModels
                 RaisePropertyChanged("SelTabIndex");
                 if (SelTabIndex == 1)
                 {
-                    Showprogress = true;
-                    Utilities.clsRefSearchOnline.ISearchPubmed(SelReference).ContinueWith(t =>
-                    {
-                        Showprogress = false;
-                        if(!t.IsFaulted && t.Result!=null)
-                        {
-                            string s = t.Result;
-                        }
-                    });
+                    BeginSearchTextinPubmed();
                 }
             }
         }
@@ -78,11 +74,72 @@ namespace pdmrwordplugin.ViewModels
                 _SelReference = value;
                 if (value != null)
                 {
-                    Globals.ThisAddIn.Application.Selection.Paragraphs.First.Range.Select();
                     value.ReftextHtml = GetFormatTextOpenXML(Globals.ThisAddIn.Application.Selection.Range.Duplicate);
+                    if (SelTabIndex == 1) { BeginSearchTextinPubmed(); }
                 }
                 RaisePropertyChanged("SelReference");
             }
+        }
+
+        public void DoNextReference()
+        {
+            try
+            {
+                Word.Range nxtrng = Globals.ThisAddIn.Application.Selection.Range.Next(Word.WdUnits.wdParagraph, 1);
+                if (nxtrng != null)
+                {
+                    nxtrng.Select();
+                    ReferenceModel selmodel = GetSelectedReference();
+                    if (selmodel != null) { SelReference = selmodel; }
+                }
+            }
+            catch { }
+        }
+
+        private ReferenceModel GetSelectedReference()
+        {
+            try
+            {
+                ReferenceModel resreference = null;
+                foreach (Word.Bookmark bk in Globals.ThisAddIn.Application.Selection.Range.Bookmarks)
+                {
+                    if (bk.Name.StartsWith("_REF"))
+                    {
+                        var selref = from item in ProcessReferences
+                                     where item.Refbookmark.ToLower() == bk.Name.ToLower()
+                                     select item;
+                        if (selref != null && selref.Count() > 0) 
+                        { resreference = selref.FirstOrDefault(); break; }
+                    } 
+                }
+                return resreference;
+            }
+            catch { return null; }
+        }
+
+        public void BeginSearchTextinPubmed()
+        {
+            Showprogress = true;
+            Utilities.clsRefSearchOnline.ISearchPubmed(SelReference).ContinueWith(t =>
+            {
+                Showprogress = false;
+                if (!t.IsFaulted && t.Result != null)
+                {
+                    SelReference.RefStrucText = GetFormatTextPubmed(t.Result);
+                    RaisePropertyChanged("SelReference");
+                }
+            });
+        }
+
+        private static string GetFormatTextPubmed(string xmlstr)
+        {
+            string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
+            string flowdocend = "</FlowDocument>";
+            try
+            {
+                return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend;
+            }
+            catch { return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend; }
         }
 
         private static string GetFormatTextOpenXML(Word.Range orange)
@@ -172,7 +229,8 @@ namespace pdmrwordplugin.ViewModels
         #endregion
 
         public RefParserModel(List<ReferenceModel> docreferences)
-        {  
+        {
+            NextReferenceCmd = new RelayCommand(m => DoNextReference());
             ProcessReferences = new ObservableCollection<ReferenceModel>();
             Showprogress = true;
             Utilities.ClsRefPub.IParseReferencebyExe(docreferences).ContinueWith(t =>
@@ -181,6 +239,7 @@ namespace pdmrwordplugin.ViewModels
                 if (!t.IsFaulted && t.Result != null)
                 {
                     ProcessReferences = new ObservableCollection<ReferenceModel>(t.Result);
+                    Globals.ThisAddIn.Application.Selection.Paragraphs.First.Range.Select();
                     SelReference = ProcessReferences.FirstOrDefault();
                 }
             });

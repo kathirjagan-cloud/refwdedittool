@@ -85,7 +85,7 @@
                         <TabItem.Header>
                             <TextBlock Text="Pubmed" FontWeight="DemiBold"/>
                         </TabItem.Header>
-                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
+                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.RefStrucText,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
                     </TabItem>
                     <TabItem>
                         <TabItem.Header>
@@ -110,7 +110,7 @@
                 </StackPanel>
             </Button>
             <Button Grid.Column="1" Width="80" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0"
-                    materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12">
+                    materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12" Command="{Binding NextReferenceCmd}">
                 <StackPanel Orientation="Horizontal" Width="60">
                     <materialDesign:PackIcon Kind="ChevronRight" VerticalAlignment="Center" Padding="0" Margin="0"/>
                     <TextBlock Text="  Next" VerticalAlignment="Center"/>

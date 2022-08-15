@@ -68,6 +68,7 @@ namespace pdmrwordplugin.Functions
                 List<ReferenceModel> objrefs = new List<ReferenceModel>();
                 Word.Range processrange = document.Range().Duplicate;
                 if (Selectedrange != null) { processrange = Selectedrange; }
+                RemoveRefBookMarks(document);
                 foreach (Word.Paragraph paragraph in processrange.Paragraphs)
                 {
                     paraindex++;
@@ -75,6 +76,9 @@ namespace pdmrwordplugin.Functions
                     if (!string.IsNullOrEmpty(paragraph.Range.Text))
                     {
                         bookindex++;
+                        Word.Range bkrng = paragraph.Range.Duplicate;
+                        bkrng.SetRange(bkrng.Start, bkrng.End - 1);
+                        document.Bookmarks.Add("_REF_" + String.Format("{0:D4}", bookindex), bkrng);
                         objrefs.Add(new ReferenceModel()
                         {
                             Reftext = paragraph.Range.Text,
@@ -91,6 +95,18 @@ namespace pdmrwordplugin.Functions
             {
                 return null;
             }
+        }
+
+        private static void RemoveRefBookMarks(Word.Document bkdoc)
+        {
+            try
+            {
+                for(int i= bkdoc.Bookmarks.Count; i >= 1; i--)
+                {
+                    bkdoc.Bookmarks[i].Delete();
+                }
+            }
+            catch { }
         }
         
         public static string GetRangeStyleName(Word.Range range)

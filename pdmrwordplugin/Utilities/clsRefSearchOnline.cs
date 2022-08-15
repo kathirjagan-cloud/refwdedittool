@@ -110,19 +110,21 @@ namespace pdmrwordplugin.Utilities
         {
             try
             {
+                string matchedxml = "";
                 string orgreftext = cReference.Reftext;
                 var xDoc = XDocument.Parse(pubxml);
                 var articles = from item in xDoc.Descendants("PubmedArticle") select item;
                 foreach (var article in articles)
-                {
+                {                    
                     string matchedelems = "";
+                    double resmatch = 0;
                     var authors = from item in article.Descendants("Author") select item;
                     foreach (var author in authors)
                     {
                         var lastname = author.Element("LastName");
                         if (lastname != null)
                         {
-                            if (orgreftext.Contains(lastname.Value)) { matchedelems += "$Authorfound$"; }
+                            if (orgreftext.Contains(lastname.Value)) { matchedelems += "$AuthorFound$"; }
                         }
                     }
                     var pubdate = from item in article.Descendants("PubDate") select item;
@@ -164,10 +166,72 @@ namespace pdmrwordplugin.Utilities
                         {
                             matchedelems += "$TitleFound$";
                         }
-                        double resmatch = Functions.ClsCommonUtils.CalculateSimilarity(title.FirstOrDefault().Value.ToLower(), cReference.title.ToLower());
+                        else
+                        {
+                            resmatch = Functions.ClsCommonUtils.CalculateSimilarity(title.FirstOrDefault().Value, cReference.title);
+                            if (resmatch > 0.9) { matchedelems += "$TitleFound$"; }
+                        }
                     }
+                    var jtitle = from item in article.Descendants("MedlineTA") select item;
+                    if (jtitle != null && jtitle.Count() > 0)
+                    {
+                        if (orgreftext.ToLower().Contains(jtitle.FirstOrDefault().Value.ToLower()) ||
+                            orgreftext.Replace(".", "").ToLower().Contains(jtitle.FirstOrDefault().Value.ToLower()))
+                        {
+                            matchedelems += "$JTitleFound$";
+                        }
+                        else
+                        {
+                            resmatch = Functions.ClsCommonUtils.CalculateSimilarity(jtitle.FirstOrDefault().Value, cReference.containertitle);
+                            if (resmatch > 0.9) { matchedelems += "$JTitleFound$"; }
+                        }
+                    }
+                    jtitle = from item in article.Descendants("Title") select item;
+                    if (jtitle != null && jtitle.Count() > 0)
+                    {
+                        if (orgreftext.ToLower().Contains(jtitle.FirstOrDefault().Value.ToLower()))
+                        {
+                            matchedelems += "$JTitleFound$";
+                        }
+                        else
+                        {
+                            resmatch = Functions.ClsCommonUtils.CalculateSimilarity(jtitle.FirstOrDefault().Value, cReference.containertitle);
+                            if (resmatch > 0.9) { matchedelems += "$JTitleFound$"; }
+                        }
+                    }
+                    jtitle = from item in article.Descendants("ISOAbbreviation") select item;
+                    if (jtitle != null && jtitle.Count() > 0)
+                    {
+                        if (orgreftext.ToLower().Contains(jtitle.FirstOrDefault().Value.ToLower()) ||
+                            orgreftext.Replace(".", "").ToLower().Contains(jtitle.FirstOrDefault().Value.ToLower()))
+                        {
+                            matchedelems += "$JTitleFound$";
+                        }
+                        else
+                        {
+                            resmatch = Functions.ClsCommonUtils.CalculateSimilarity(jtitle.FirstOrDefault().Value, cReference.containertitle);
+                            if (resmatch > 0.9) { matchedelems += "$JTitleFound$"; }
+                        }
+                    }
+                    // Check the conditions
+                    if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$YearFound$") && matchedelems.Contains("$PageFound$") &&
+                        matchedelems.Contains("$VolumeFound$"))
+                    {
+                        matchedxml= article.ToString();
+                    }
+                    if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$YearFound$") && matchedelems.Contains("$PageFound$") &&
+                        matchedelems.Contains("$JTitleFound$"))
+                    {
+                        matchedxml = article.ToString();
+                    }
+                    if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$YearFound$") && matchedelems.Contains("$TitleFound$"))
+                    {
+                        matchedxml = article.ToString();
+                    }
+                    if (!string.IsNullOrEmpty(matchedxml)) { break; }
+                    // Ends here
                 }
-                return "";
+                return matchedxml;
             }
             catch { return ""; }
         }
@@ -225,6 +289,7 @@ namespace pdmrwordplugin.Utilities
                                         string pubmedids = string.Join(",", refidlists);
                                         resultJson = await FetchPubmedContent(pubmedids);
                                         string sBettermatch = GetBetterMatchRec(resultJson, prcReference);
+                                        if (!string.IsNullOrEmpty(sBettermatch)) { resultJson = sBettermatch; break; }
                                     }
                                 }
                             }
