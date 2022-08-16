@@ -111,11 +111,11 @@ namespace pdmrwordplugin.Utilities
             try
             {
                 string matchedxml = "";
-                string orgreftext = cReference.Reftext;
                 var xDoc = XDocument.Parse(pubxml);
                 var articles = from item in xDoc.Descendants("PubmedArticle") select item;
                 foreach (var article in articles)
-                {                    
+                {
+                    string orgreftext = cReference.Reftext;
                     string matchedelems = "";
                     double resmatch = 0;
                     var authors = from item in article.Descendants("Author") select item;
@@ -125,6 +125,14 @@ namespace pdmrwordplugin.Utilities
                         if (lastname != null)
                         {
                             if (orgreftext.Contains(lastname.Value)) { matchedelems += "$AuthorFound$"; }
+                            if (cReference.Authors != null && cReference.Authors.Count > 0)
+                            {
+                                resmatch = Functions.ClsCommonUtils.CalculateSimilarity(lastname.Value, cReference.Authors.FirstOrDefault().family);
+                                if(resmatch > 0.8)
+                                {
+                                    matchedelems += "$AuthorFound$";
+                                }
+                            }
                         }
                     }
                     var pubdate = from item in article.Descendants("PubDate") select item;
@@ -254,7 +262,7 @@ namespace pdmrwordplugin.Utilities
             try
             {
                 ReferenceModel prcReference = ConsructPubQuery(sreference);
-                string[] queries = "<title>#<author>[au]+AND+<date>[dp]+AND+<volume>[volume]#<author>[au]+AND+<date>[dp]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[ta]".Split('#');
+                string[] queries = "<author>[au]+AND+<date>[dp]+AND+<volume>[vi]#<author>[au]+AND+<date>[dp]+AND+<pagination>[pg]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[ta]#<title>#<title>+AND+<date>[dp]+AND+<volume>[vi]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[jt]#<author>[au]+AND+<date>[dp]<volume>[vi]+AND+<date>[dp]+AND+<containertitle>[jt]#<volume>[vi]+AND+<date>[dp]+AND+<containertitle>[ta]".Split('#');
                 string resultJson = "";
                 foreach (string query in queries)
                 {
@@ -267,12 +275,14 @@ namespace pdmrwordplugin.Utilities
                             strtemp = strtemp.Replace("<author>", prcReference.Authors.FirstOrDefault().family);
                         if (query.Contains("<date>"))
                             strtemp = strtemp.Replace("<date>", prcReference.date);
-                        if (query.Contains("<volume>"))
+                        if (query.Contains("<volume>") && !string.IsNullOrEmpty(prcReference.volume))
                             strtemp = strtemp.Replace("<volume>", prcReference.volume);
-                        if (query.Contains("<containertitle>"))
+                        if (query.Contains("<containertitle>") && !string.IsNullOrEmpty(prcReference.containertitle))
                             strtemp = strtemp.Replace("<containertitle>", prcReference.containertitle);
-                        if (query.Contains("<title>"))
+                        if (query.Contains("<title>") && !string.IsNullOrEmpty(prcReference.title))
                             strtemp = strtemp.Replace("<title>", prcReference.title);
+                        if (query.Contains("<pagination>") && !string.IsNullOrEmpty(prcReference.pages))
+                            strtemp = strtemp.Replace("<pagination>", prcReference.pages);
                         sQuery += "&term=" + strtemp;
                         HttpResponseMessage response = await searchclient.GetAsync(sQuery);
                         if (response.IsSuccessStatusCode)
