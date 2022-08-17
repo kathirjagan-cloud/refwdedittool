@@ -190,6 +190,7 @@
     <Compile Include="ClsMessages.cs" />
     <Compile Include="Functions\clsCommonUtils.cs" />
     <Compile Include="Models\ReferenceModel.cs" />
+    <Compile Include="Models\RefStyles.cs" />
     <Compile Include="pdmrRibbon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

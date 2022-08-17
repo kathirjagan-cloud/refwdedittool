@@ -12,5 +12,7 @@ namespace pdmrwordplugin
         public const string REF_PARSER_PATH = @"F:\Parser\";
         public const string REF_PARA_STYLE = "PReference";
         public const string PROJ_TITLE = "PDMR Word Plug-in v1.0";
+        public static string APP_PATH = @"%appdata%\pdmrplugin\";
+        public const string REF_STYLES_CONFIG = "ReferenceStyles.xml";
     }
 }

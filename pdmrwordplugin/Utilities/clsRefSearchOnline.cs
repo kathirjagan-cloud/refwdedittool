@@ -112,7 +112,7 @@ namespace pdmrwordplugin.Utilities
             {
                 string matchedxml = "";
                 var xDoc = XDocument.Parse(pubxml);
-                var articles = from item in xDoc.Descendants("PubmedArticle") select item;
+                var articles = (from item in xDoc.Descendants("PubmedArticle") select item).ToList();
                 foreach (var article in articles)
                 {
                     string orgreftext = cReference.Reftext;
@@ -125,13 +125,10 @@ namespace pdmrwordplugin.Utilities
                         if (lastname != null)
                         {
                             if (orgreftext.Contains(lastname.Value)) { matchedelems += "$AuthorFound$"; }
-                            if (cReference.Authors != null && cReference.Authors.Count > 0)
+                            else if (cReference.Authors != null && cReference.Authors.Count > 0)
                             {
                                 resmatch = Functions.ClsCommonUtils.CalculateSimilarity(lastname.Value, cReference.Authors.FirstOrDefault().family);
-                                if(resmatch > 0.8)
-                                {
-                                    matchedelems += "$AuthorFound$";
-                                }
+                                if (resmatch > 0.8) { matchedelems += "$AuthorFound$"; }
                             }
                         }
                     }
@@ -139,12 +136,13 @@ namespace pdmrwordplugin.Utilities
                     if (pubdate != null && pubdate.Count() > 0)
                     {
                         var date = pubdate.FirstOrDefault().Element("Year");
+                        //check for epub date too
                         if (date != null)
-                        {
+                        {                            
                             if (orgreftext.Contains(date.Value))
                             {
                                 matchedelems += "$YearFound$";
-                                orgreftext = orgreftext.Replace(date.Value, "");
+                                //orgreftext = orgreftext.Replace(date.Value, "");
                             }
                         }
                     }
@@ -152,10 +150,11 @@ namespace pdmrwordplugin.Utilities
                     if (pagination != null && pagination.Count() > 0)
                     {
                         string firstpagenum = GetFirstPagenumber(pagination.FirstOrDefault().Value);
-                        if (orgreftext.Contains(firstpagenum + "-") || orgreftext.Contains(firstpagenum + "\u2014"))
+                        if (orgreftext.Contains(firstpagenum + "-") || orgreftext.Contains(firstpagenum + "\u2014") || orgreftext.ToLower().Contains("p" + firstpagenum) 
+                            || orgreftext.ToLower().Contains("p. " + firstpagenum))
                         {
                             matchedelems += "$PageFound$";
-                            orgreftext = Regex.Replace(orgreftext, firstpagenum + @"[\u2014\-]\d+", "");
+                            //orgreftext = Regex.Replace(orgreftext, firstpagenum + @"[\u2014\-]\d+", "");
                         }
                     }
                     var volume = from item in article.Descendants("Volume") select item;
@@ -164,7 +163,7 @@ namespace pdmrwordplugin.Utilities
                         if (orgreftext.Contains(volume.FirstOrDefault().Value))
                         {
                             matchedelems += "$VolumeFound$";
-                            orgreftext = orgreftext.Replace(volume.FirstOrDefault().Value, "");
+                            //orgreftext = orgreftext.Replace(volume.FirstOrDefault().Value, "");
                         }
                     }
                     var title = from item in article.Descendants("ArticleTitle") select item;
@@ -226,6 +225,11 @@ namespace pdmrwordplugin.Utilities
                         matchedelems.Contains("$VolumeFound$"))
                     {
                         matchedxml= article.ToString();
+                    }
+                    if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$TitleFound$") && matchedelems.Contains("$PageFound$") &&
+                        matchedelems.Contains("$JTitleFound$"))
+                    {
+                        matchedxml = article.ToString();
                     }
                     if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$YearFound$") && matchedelems.Contains("$PageFound$") &&
                         matchedelems.Contains("$JTitleFound$"))

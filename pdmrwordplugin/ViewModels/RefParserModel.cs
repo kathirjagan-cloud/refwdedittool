@@ -137,9 +137,14 @@ namespace pdmrwordplugin.ViewModels
             string flowdocend = "</FlowDocument>";
             try
             {
-                return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend;
+                //return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend;
+                return flowdocstart + "" + flowdocend;
             }
-            catch { return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend; }
+            catch
+            {
+                return "";
+                //return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend; }
+            }
         }
 
         private static string GetFormatTextOpenXML(Word.Range orange)
