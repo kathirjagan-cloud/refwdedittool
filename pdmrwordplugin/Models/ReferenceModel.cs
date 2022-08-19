@@ -25,6 +25,7 @@ namespace pdmrwordplugin.Models
         public string title { get; set; }
         public string volume { get; set; }
         public string containertitle { get; set; }
+        public string containertitleabbrv { get; set; }
         public string date { get; set; }
         public string issue { get; set; }
         public string pages { get; set; }

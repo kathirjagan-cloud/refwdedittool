@@ -1,16 +1,37 @@
 ﻿using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Serialization;
 using Word = Microsoft.Office.Interop.Word;
 
 namespace pdmrwordplugin.Functions
 {
     public static class ClsCommonUtils
     {
+
+        public static T DeserializeXMLFileToObject<T>(string XmlFilename)
+        {
+            T returnObject = default(T);
+            if (string.IsNullOrEmpty(XmlFilename)) return default(T);
+
+            try
+            {
+                StreamReader xmlStream = new StreamReader(XmlFilename);
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                returnObject = (T)serializer.Deserialize(xmlStream);
+            }
+            catch
+            {
+
+            }
+            return returnObject;
+        }
+
         public static double CalculateSimilarity(string source, string target)
         {
             if ((source == null) || (target == null)) return 0.0;

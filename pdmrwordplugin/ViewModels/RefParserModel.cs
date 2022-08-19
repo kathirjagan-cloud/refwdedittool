@@ -15,6 +15,9 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using OpenXmlPowerTools;
 using System.IO;
 using System.Management.Automation;
+using System.Xml.Serialization;
+using System.Windows.Markup;
+using System.Xml.Linq;
 
 namespace pdmrwordplugin.ViewModels
 {
@@ -131,19 +134,42 @@ namespace pdmrwordplugin.ViewModels
             });
         }
 
+
+        private static ReferenceModel GetPubmedObject(string parsexmlstr)
+        {
+            try
+            {
+                ReferenceModel classObject = null;
+                if (parsexmlstr.Contains("<PubmedArticle>"))
+                {
+                    var xDoc = XDocument.Parse(parsexmlstr);
+                    var article = xDoc.Root;
+                    var authors = (from item in article.Descendants("Author")
+                                   select new Author()
+                                   {
+                                       family = item.Element("LastName") != null ? item.Element("LastName").Value : "",
+                                       given = item.Element("Initials") != null ? item.Element("Initials").Value : ""
+                                   }).ToList();
+
+                    return classObject;
+                }
+                else { return null; }
+            }
+            catch { return null; }
+        }
+
         private static string GetFormatTextPubmed(string xmlstr)
         {
             string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
             string flowdocend = "</FlowDocument>";
             try
             {
-                //return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend;
+                ReferenceModel pubmedobj = GetPubmedObject(xmlstr);
                 return flowdocstart + "" + flowdocend;
             }
             catch
             {
                 return "";
-                //return flowdocstart + "<Paragraph>" + xmlstr.Replace("<", "[").Replace(">", "]") + "</Paragraph>" + flowdocend; }
             }
         }
 

@@ -20,7 +20,7 @@ namespace pdmrwordplugin
             ClsGlobals.APP_PATH = Environment.ExpandEnvironmentVariables(ClsGlobals.APP_PATH);
             if (File.Exists(ClsGlobals.APP_PATH + ClsGlobals.REF_STYLES_CONFIG))
             {
-                Models.referencestyles referencestyles = DeserializeXMLFileToObject<Models.referencestyles>(ClsGlobals.APP_PATH + ClsGlobals.REF_STYLES_CONFIG);
+                ClsGlobals.gReferencestyles = Functions.ClsCommonUtils.DeserializeXMLFileToObject<Models.referencestyles>(ClsGlobals.APP_PATH + ClsGlobals.REF_STYLES_CONFIG);
             }
             // Ends here
         }
@@ -29,25 +29,7 @@ namespace pdmrwordplugin
         {
             
         }
-
-        public static T DeserializeXMLFileToObject<T>(string XmlFilename)
-        {
-            T returnObject = default(T);
-            if (string.IsNullOrEmpty(XmlFilename)) return default(T);
-
-            try
-            {
-                StreamReader xmlStream = new StreamReader(XmlFilename);
-                XmlSerializer serializer = new XmlSerializer(typeof(T));
-                returnObject = (T)serializer.Deserialize(xmlStream);
-            }
-            catch
-            {
-                
-            }
-            return returnObject;
-        }
-
+        
         protected override Microsoft.Office.Core.IRibbonExtensibility CreateRibbonExtensibilityObject()
         {
             return new pdmrRibbon();
