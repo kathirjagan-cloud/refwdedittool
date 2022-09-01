@@ -2,10 +2,10 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
   <ribbon>
     <tabs>
-      <tab id="CustomTab" label="My Tab">
-        <group id="SimpleControls" label="My Group">
-          <button id="Button1" imageMso="HappyFace" size="large"
-            label="Large Button" onAction="BtnClick"/>
+      <tab id="CustomTab" label="PDMR Word Plug-in">
+        <group id="SimpleControls" label="Reference Online">
+          <button id="Button1" imageMso="FileSave" size="large"
+            label="Reference Structuring" onAction="BtnClick"/>
         </group>
       </tab>
     </tabs>

@@ -100,11 +100,11 @@ namespace pdmrwordplugin.Functions
                         bookindex++;
                         Word.Range bkrng = paragraph.Range.Duplicate;
                         bkrng.SetRange(bkrng.Start, bkrng.End - 1);
-                        document.Bookmarks.Add("_REF_" + String.Format("{0:D4}", bookindex), bkrng);
+                        document.Bookmarks.Add("REF_" + String.Format("{0:D4}", bookindex), bkrng);
                         objrefs.Add(new ReferenceModel()
                         {
                             Reftext = paragraph.Range.Text,
-                            Refbookmark = "_REF_" + String.Format("{0:D4}", bookindex),
+                            Refbookmark = "REF_" + String.Format("{0:D4}", bookindex),
                             PIndex = paraindex,
                             ReftextHtml = ""
                         });

@@ -189,7 +189,6 @@
     <Compile Include="ClsGlobals.cs" />
     <Compile Include="ClsMessages.cs" />
     <Compile Include="Functions\clsCommonUtils.cs" />
-    <Compile Include="Models\PubmedArticle.cs" />
     <Compile Include="Models\ReferenceModel.cs" />
     <Compile Include="Models\RefStyles.cs" />
     <Compile Include="pdmrRibbon.cs" />
@@ -201,6 +200,7 @@
     </Compile>
     <Compile Include="RelayCommand.cs" />
     <Compile Include="RichTextBoxHelper.cs" />
+    <Compile Include="StringExtensionMethods.cs" />
     <Compile Include="Taskpane\Usrtaskpane.cs">
       <SubType>UserControl</SubType>
     </Compile>

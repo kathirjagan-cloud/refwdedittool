@@ -46,7 +46,7 @@
                 <GroupBox.Header>
                     <TextBlock Text="Compared Reference" FontWeight="SemiBold"/>
                 </GroupBox.Header>
-                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
+                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.RefCompText,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
             </GroupBox>
             <GroupBox Grid.Row="3" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">

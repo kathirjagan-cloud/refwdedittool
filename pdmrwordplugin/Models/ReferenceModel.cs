@@ -10,6 +10,8 @@ namespace pdmrwordplugin.Models
     {
         public string given { get; set; }
         public string family { get; set; }
+
+        public string forename { get; set; }
     }
 
     public class ReferenceModel

@@ -18,6 +18,9 @@ using System.Management.Automation;
 using System.Xml.Serialization;
 using System.Windows.Markup;
 using System.Xml.Linq;
+using System.Xml.XPath;
+using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
 
 namespace pdmrwordplugin.ViewModels
 {
@@ -106,7 +109,7 @@ namespace pdmrwordplugin.ViewModels
                 ReferenceModel resreference = null;
                 foreach (Word.Bookmark bk in Globals.ThisAddIn.Application.Selection.Range.Bookmarks)
                 {
-                    if (bk.Name.StartsWith("_REF"))
+                    if (bk.Name.StartsWith("REF_"))
                     {
                         var selref = from item in ProcessReferences
                                      where item.Refbookmark.ToLower() == bk.Name.ToLower()
@@ -129,11 +132,49 @@ namespace pdmrwordplugin.ViewModels
                 if (!t.IsFaulted && t.Result != null)
                 {
                     SelReference.RefStrucText = GetFormatTextPubmed(t.Result);
+                    SelReference.RefCompText = GetCompareText(SelReference.Reftext, SelReference.RefStrucText);
                     RaisePropertyChanged("SelReference");
                 }
             });
         }
 
+        public string GetCompareText(string orgtext, string structext)
+        {
+            string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
+            string flowdocend = "</FlowDocument>";
+            string puncts = "$$in$$was$$and$$";
+            try
+            {
+                structext = structext.Replace(flowdocstart, "");
+                structext = structext.Replace(flowdocend, "");
+                structext = structext.Replace("<Paragraph>", "");
+                structext = structext.Replace("</Paragraph>", "");
+                structext = structext.Replace("<Bold>", "");
+                structext = structext.Replace("</Bold>", "");
+                structext = structext.Replace("<Italic>", "");
+                structext = structext.Replace("</Italic>", "");
+                string[] strarr1 = structext.Split(new char[] { ' ', '.', ':', ',', ';', '(', ')', '[', ']', '-', '\u2014' });
+                var strarr = strarr1.Distinct().ToArray().OrderByDescending(x => x.Length).ToArray();
+                for (int i = 0; i < strarr.Length; i++)
+                {
+                    string s = strarr[i];
+                    if (s.Length > 3 && !puncts.Contains(s))
+                    {
+                        orgtext = orgtext.ReplaceFirst(s, "<Run Foreground=\"Green\">" + "$$" + i.ToString() + "$$" + "</Run>");
+                    }
+                    else if (int.TryParse(s, out _) && Regex.IsMatch(orgtext, "\b" + s))
+                    {
+                        orgtext = orgtext.ReplaceFirst(s, "<Run Foreground=\"Green\">" + "$$" + i.ToString() + "$$" + "</Run>");
+                    }
+                }
+                for (int i = 0; i < strarr.Length; i++)
+                {
+                    orgtext = orgtext.ReplaceFirst("$$" + i.ToString() + "$$", strarr[i]);
+                }
+                return flowdocstart + "<Paragraph>" + orgtext + "</Paragraph>" + flowdocend;
+            }
+            catch { return ""; }
+        }
 
         private static ReferenceModel GetPubmedObject(string parsexmlstr)
         {
@@ -142,14 +183,39 @@ namespace pdmrwordplugin.ViewModels
                 ReferenceModel classObject = null;
                 if (parsexmlstr.Contains("<PubmedArticle>"))
                 {
+                    classObject = new ReferenceModel();
                     var xDoc = XDocument.Parse(parsexmlstr);
                     var article = xDoc.Root;
                     var authors = (from item in article.Descendants("Author")
                                    select new Author()
                                    {
                                        family = item.Element("LastName") != null ? item.Element("LastName").Value : "",
-                                       given = item.Element("Initials") != null ? item.Element("Initials").Value : ""
+                                       given = item.Element("Initials") != null ? item.Element("Initials").Value : "",
+                                       forename = item.Element("ForeName") != null ? item.Element("ForeName").Value : ""
                                    }).ToList();
+
+                    if (authors != null) { classObject.Authors = new List<Author>(authors); }
+
+                    var elem = xDoc.XPathSelectElement(".//Volume");
+                    if (elem != null) { classObject.volume = elem.Value; }
+
+                    elem = xDoc.XPathSelectElement(".//Issue");
+                    if (elem != null) { classObject.issue = elem.Value; }
+                    
+                    elem = xDoc.XPathSelectElement(".//PubDate/Year");
+                    if (elem != null) { classObject.date = elem.Value; }
+
+                    elem = xDoc.XPathSelectElement(".//Journal/Title");
+                    if (elem != null) { classObject.containertitle = elem.Value; }
+
+                    elem = xDoc.XPathSelectElement(".//MedlineJournalInfo/MedlineTA");
+                    if (elem != null) { classObject.containertitleabbrv = elem.Value; }
+                    
+                    elem = xDoc.XPathSelectElement(".//MedlinePgn");
+                    if (elem != null) { classObject.pages= elem.Value; }
+                    
+                    elem = xDoc.XPathSelectElement(".//ArticleTitle");
+                    if (elem != null) { classObject.title = elem.Value; }
 
                     return classObject;
                 }
@@ -157,6 +223,7 @@ namespace pdmrwordplugin.ViewModels
             }
             catch { return null; }
         }
+       
 
         private static string GetFormatTextPubmed(string xmlstr)
         {
@@ -165,13 +232,103 @@ namespace pdmrwordplugin.ViewModels
             try
             {
                 ReferenceModel pubmedobj = GetPubmedObject(xmlstr);
-                return flowdocstart + "" + flowdocend;
+                if (pubmedobj == null) { return ""; }
+                referencestylesStyle refstyle = ClsGlobals.gReferencestyles.style.FirstOrDefault();
+                string refpattern = refstyle.pattern;
+                string authorpattern = GetAuthorsFormat(refstyle, pubmedobj.Authors.Count);
+                MatchCollection lastmatches = Regex.Matches(authorpattern, @"\[LastName\]");
+                MatchCollection inimatches = Regex.Matches(authorpattern, @"\[Initials\]");
+                if (lastmatches != null && lastmatches.Count > 0)
+                {
+                    for (int i = 0; i < lastmatches.Count; i++)
+                    {
+                        authorpattern = StringExtensionMethods.ReplaceFirst(authorpattern, "[LastName]", pubmedobj.Authors[i].family);
+                    }
+                }
+                if (inimatches != null && inimatches.Count > 0)
+                {
+                    for (int i = 0; i < inimatches.Count; i++)
+                    {
+                        authorpattern = StringExtensionMethods.ReplaceFirst(authorpattern, "[Initials]", pubmedobj.Authors[i].given);
+                    }
+                }
+                refpattern = refpattern.Replace("[Author]", authorpattern);
+                //replace author "[Author] [ArticleTitle]. [Journal] [Date];[Volume]([Issue]):[Page]"
+                if (refstyle.journal.abbreviation)
+                {
+                    if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + pubmedobj.containertitleabbrv + "</Italic>"); }
+                    else { refpattern = refpattern.Replace("[Journal]", pubmedobj.containertitleabbrv); }
+                }
+                else
+                {
+                    if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + pubmedobj.containertitle + "</Italic>"); }
+                    else { refpattern = refpattern.Replace("[Journal]", pubmedobj.containertitle); }
+                }
+                //replace journal title
+                refpattern = refpattern.Replace("[ArticleTitle]", pubmedobj.title);
+                //replace article title
+                refpattern = refpattern.Replace("[Date]", pubmedobj.date);
+                //replace date
+                refpattern = refpattern.Replace("[Volume]", pubmedobj.volume);
+                //replace issue
+                refpattern = refpattern.Replace("[Issue]", pubmedobj.issue);
+                //replace volume
+                refpattern = refpattern.Replace("[Page]", pubmedobj.pages);
+                //replace pagination
+                refpattern = refpattern.Replace("&", "&amp;");
+                return flowdocstart + "<Paragraph>" + refpattern + "</Paragraph>" + flowdocend;
             }
             catch
             {
                 return "";
             }
         }
+
+        private static string GetAuthorsFormat(referencestylesStyle arefstyle, int authorscount)
+        {
+            string authstr = arefstyle.authorpattern;
+            try
+            {
+                int maxcount = 0;
+                int count = 0;
+                if (!string.IsNullOrEmpty(arefstyle.separators.maxcount))
+                {
+                    maxcount = int.Parse(arefstyle.separators.maxcount);
+                }
+                if (!string.IsNullOrEmpty(arefstyle.separators.count))
+                {
+                    count = int.Parse(arefstyle.separators.count);
+                }
+                if (maxcount > 0 && authorscount < maxcount)
+                {
+                    count = authorscount;
+                }
+                else if (maxcount > 0 && authorscount > maxcount && !string.IsNullOrEmpty(arefstyle.separators.etal))
+                {
+                    arefstyle.separators.end = arefstyle.separators.etal;
+                }
+                if (count == 2 && !string.IsNullOrEmpty(arefstyle.separators.twoauthor))
+                {
+                    authstr = authstr + arefstyle.separators.twoauthor + authstr + arefstyle.separators.end;
+                }
+                else if (count > 1)
+                {
+                    string strtmp = "";
+                    for (int i = 1; i <= count; i++)
+                    {
+                        if (string.IsNullOrEmpty(strtmp)) { strtmp = authstr; }
+                        else { strtmp += arefstyle.separators.author + authstr; }
+                    }
+                    authstr = strtmp + arefstyle.separators.end;
+                }
+                return authstr;
+            }
+            catch
+            {
+                return authstr;
+            }
+        }
+
 
         private static string GetFormatTextOpenXML(Word.Range orange)
         {
@@ -214,39 +371,8 @@ namespace pdmrwordplugin.ViewModels
                     }
                 }
                 strXaml = strXaml.Replace(" <", "\u2002<");
+                strXaml = strXaml.Replace("&", "&amp;");
                 document.Close();
-                return flowdocstart + "<Paragraph>" + strXaml + "</Paragraph>" + flowdocend;
-            }
-            catch
-            {
-                return flowdocstart + "<Paragraph>" + orange.Text + "</Paragraph>" + flowdocend;
-            }
-        }
-
-        private static string GetFormatText(Word.Range orange)
-        {
-            string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
-            string flowdocend = "</FlowDocument>";
-            try
-            {
-                string strXaml = "";
-                foreach (Word.Range orng in orange.Characters)
-                {
-                    bool blnItalic = false;
-                    bool blnBold = false;
-                    if (orng.Font.Bold != 0)
-                    {
-                        blnBold = true;
-                        strXaml += "<Bold>" + orng.Text + "</Bold>";
-                    }
-                    if (orng.Font.Italic != 0)
-                    {
-                        blnItalic = true;
-                        strXaml += "<Italic>" + orng.Text + "</Italic>";
-                    }
-                    if (!blnBold && !blnItalic)
-                        strXaml += orng.Text;
-                }
                 return flowdocstart + "<Paragraph>" + strXaml + "</Paragraph>" + flowdocend;
             }
             catch

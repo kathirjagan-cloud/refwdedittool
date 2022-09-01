@@ -6,14 +6,22 @@ using System.Threading.Tasks;
 
 namespace pdmrwordplugin.Models
 {
+
+
+    // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
+    /// <remarks/>
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "", IsNullable = false)]
     public partial class referencestyles
     {
-        private referencestylesStyle styleField;
-        public referencestylesStyle style
+
+        private referencestylesStyle[] styleField;
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("style")]
+        public referencestylesStyle[] style
         {
             get
             {
@@ -26,6 +34,7 @@ namespace pdmrwordplugin.Models
         }
     }
 
+    /// <remarks/>
     [System.SerializableAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
@@ -41,6 +50,8 @@ namespace pdmrwordplugin.Models
         private referencestylesStyleSeparators separatorsField;
 
         private string nameField;
+
+        /// <remarks/>
         public string pattern
         {
             get
@@ -53,6 +64,7 @@ namespace pdmrwordplugin.Models
             }
         }
 
+        /// <remarks/>
         public referencestylesStyleJournal journal
         {
             get
@@ -65,7 +77,7 @@ namespace pdmrwordplugin.Models
             }
         }
 
-
+        /// <remarks/>
         public string authorpattern
         {
             get
@@ -78,6 +90,7 @@ namespace pdmrwordplugin.Models
             }
         }
 
+        /// <remarks/>
         public referencestylesStyleSeparators separators
         {
             get
@@ -90,6 +103,7 @@ namespace pdmrwordplugin.Models
             }
         }
 
+        /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
         public string name
         {
@@ -113,7 +127,7 @@ namespace pdmrwordplugin.Models
 
         private bool abbreviationField;
 
-        private bool useperiodField;
+        private object useperiodField;
 
         private bool italicField;
 
@@ -131,7 +145,7 @@ namespace pdmrwordplugin.Models
         }
 
         /// <remarks/>
-        public bool useperiod
+        public object useperiod
         {
             get
             {
@@ -164,9 +178,9 @@ namespace pdmrwordplugin.Models
     public partial class referencestylesStyleSeparators
     {
 
-        private int maxcountField;
+        private string maxcountField;
 
-        private int countField;
+        private string countField;
 
         private string etalField;
 
@@ -185,7 +199,7 @@ namespace pdmrwordplugin.Models
         private string beforeprefixField;
 
         /// <remarks/>
-        public int maxcount
+        public string maxcount
         {
             get
             {
@@ -198,7 +212,7 @@ namespace pdmrwordplugin.Models
         }
 
         /// <remarks/>
-        public int count
+        public string count
         {
             get
             {
@@ -314,6 +328,9 @@ namespace pdmrwordplugin.Models
             }
         }
     }
+
+
+
     internal class RefStyles
     {
 
