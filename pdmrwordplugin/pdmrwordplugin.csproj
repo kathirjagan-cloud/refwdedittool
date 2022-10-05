@@ -114,6 +114,7 @@
     <Reference Include="MaterialDesignThemes.Wpf, Version=4.5.0.0, Culture=neutral, PublicKeyToken=df2a72020bd7962a, processorArchitecture=MSIL">
       <HintPath>..\packages\MaterialDesignThemes.4.5.0\lib\net452\MaterialDesignThemes.Wpf.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -188,9 +189,13 @@
   <ItemGroup>
     <Compile Include="ClsGlobals.cs" />
     <Compile Include="ClsMessages.cs" />
+    <Compile Include="Controls\XrefCtrl.xaml.cs">
+      <DependentUpon>XrefCtrl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Functions\clsCommonUtils.cs" />
     <Compile Include="Models\ReferenceModel.cs" />
     <Compile Include="Models\RefStyles.cs" />
+    <Compile Include="Models\XrefModel.cs" />
     <Compile Include="pdmrRibbon.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -207,9 +212,18 @@
     <Compile Include="Taskpane\Usrtaskpane.Designer.cs">
       <DependentUpon>Usrtaskpane.cs</DependentUpon>
     </Compile>
+    <Compile Include="Taskpane\UsrXrefTaskpane.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Taskpane\UsrXrefTaskpane.Designer.cs">
+      <DependentUpon>UsrXrefTaskpane.cs</DependentUpon>
+    </Compile>
     <Compile Include="Utilities\clsRefPub.cs" />
     <Compile Include="Utilities\clsRefSearchOnline.cs" />
+    <Compile Include="Utilities\clsVanXref.cs" />
     <Compile Include="ViewModels\RefParserModel.cs" />
+    <Compile Include="ViewModels\XrefViewModel.cs" />
+    <Compile Include="WebBrowserBehaviors.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -221,6 +235,9 @@
     </Compile>
     <EmbeddedResource Include="Taskpane\Usrtaskpane.resx">
       <DependentUpon>Usrtaskpane.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Taskpane\UsrXrefTaskpane.resx">
+      <DependentUpon>UsrXrefTaskpane.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="app.config" />
     <None Include="packages.config" />
@@ -249,9 +266,16 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\XrefCtrl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="pdmrRibbon.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="images\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

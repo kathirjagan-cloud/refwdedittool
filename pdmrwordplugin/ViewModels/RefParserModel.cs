@@ -34,6 +34,9 @@ namespace pdmrwordplugin.ViewModels
 
         public RelayCommand NextReferenceCmd { set; get; }
 
+        public RelayCommand SearchOnlineTermCmd { set; get; }
+        
+
         private ObservableCollection<ReferenceModel> _ProcessReferences;
         public ObservableCollection<ReferenceModel> ProcessReferences 
         {
@@ -42,6 +45,39 @@ namespace pdmrwordplugin.ViewModels
             {
                 _ProcessReferences = value;
                 RaisePropertyChanged("ProcessReferences");
+            }
+        }
+
+        private string _SearchTextOnline;
+        public string SearchTextOnline
+        {
+            get { return _SearchTextOnline; }
+            set
+            {
+                _SearchTextOnline = value;
+                RaisePropertyChanged("SearchTextOnline");
+            }
+        }
+
+        private bool _ToShowSearch;
+        public bool ToShowSearch
+        {
+            get { return _ToShowSearch; }
+            set
+            {
+                _ToShowSearch = value;
+                RaisePropertyChanged("ToShowSearch");
+            }
+        }
+
+        private int _MainTabIndex;
+        public int MainTabIndex
+        {
+            get { return _MainTabIndex; }
+            set
+            {
+                _MainTabIndex = value;
+                RaisePropertyChanged("MainTabIndex");
             }
         }
 
@@ -381,6 +417,14 @@ namespace pdmrwordplugin.ViewModels
             }
         }
 
+        public void ToSearchOnline()
+        {
+            ToShowSearch = true;
+            MainTabIndex = 1;
+            if (SelReference != null)
+                SearchTextOnline = "https://www.google.com/search?q=" + SelReference.Reftext;
+        }
+
         #region Initialize
 
         #endregion
@@ -388,8 +432,9 @@ namespace pdmrwordplugin.ViewModels
         public RefParserModel(List<ReferenceModel> docreferences)
         {
             NextReferenceCmd = new RelayCommand(m => DoNextReference());
+            SearchOnlineTermCmd = new RelayCommand(m => ToSearchOnline());
             ProcessReferences = new ObservableCollection<ReferenceModel>();
-            Showprogress = true;
+            Showprogress = true;            
             Utilities.ClsRefPub.IParseReferencebyExe(docreferences).ContinueWith(t =>
             {
                 Showprogress = false;

@@ -80,6 +80,62 @@ namespace pdmrwordplugin.Functions
             return distance[sourceWordCount, targetWordCount];
         }
 
+
+        public static void SetReferenceRangebyBook()
+        {
+            try
+            {
+                if (Globals.ThisAddIn.Application.ActiveDocument == null) { return; }
+                Word.Range orng = Globals.ThisAddIn.Application.Selection.Range.Duplicate;
+                if (orng.Paragraphs.Count <= 5)
+                {
+                    MessageBox.Show(ClsMessages.REF_MESSAGE_4, ClsGlobals.PROJ_TITLE);
+                }
+                Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Add(ClsGlobals.REF_BOOK_NAME, orng.Duplicate);
+            }
+            catch { MessageBox.Show(ClsMessages.REF_MESSAGE_3, ClsGlobals.PROJ_TITLE); }
+        }
+
+        public static Word.Range GetReferenceRangebyBook()
+        {
+            try
+            {
+                if (Globals.ThisAddIn.Application.ActiveDocument == null) { return null; }
+                Word.Document odoc = Globals.ThisAddIn.Application.ActiveDocument;
+                if(odoc.Bookmarks.Exists(ClsGlobals.REF_BOOK_NAME))
+                {
+                    return odoc.Bookmarks[ClsGlobals.REF_BOOK_NAME].Range.Duplicate;
+                }
+                else
+                {
+                    MessageBox.Show(ClsMessages.REF_MESSAGE_5, ClsGlobals.PROJ_TITLE);
+                }
+                return null;
+            }
+            catch { return null; }
+        }
+
+        public static string GetContextfromRng(Word.Range objrng)
+        {
+            try
+            {
+                string stext = "";
+                Word.Range opararng = objrng.Paragraphs.First.Range.Duplicate;
+                Word.Range moverng = objrng.Duplicate;
+                moverng.Move(Word.WdUnits.wdCharacter, -75);
+                if (!moverng.InRange(opararng))
+                {
+                    moverng = opararng.Duplicate;
+                    moverng.SetRange(moverng.Start, objrng.End);
+                }
+                else
+                    moverng.SetRange(moverng.Start, objrng.End);
+                stext = moverng.Text;
+                return stext;
+            }
+            catch { return objrng.Text; }
+        }
+
         // Get the reference details like text, bookmark //
         public static List<ReferenceModel> GetReferenceDetails(Word.Document document, Word.Range Selectedrange = null)
         {

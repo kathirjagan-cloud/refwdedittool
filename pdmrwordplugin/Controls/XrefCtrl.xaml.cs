@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -10,24 +9,24 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace pdmrwordplugin
+namespace pdmrwordplugin.Controls
 {
     /// <summary>
-    /// Interaction logic for ReferenceCtrl.xaml
+    /// Interaction logic for XrefCtrl.xaml
     /// </summary>
-    public partial class ReferenceCtrl : UserControl
+    public partial class XrefCtrl : UserControl
     {
-        public ReferenceCtrl()
+        public XrefCtrl()
         {
-            InitializeComponent();            
-            Utilities.clsRefSearchOnline.SetHttpClients();            
-            List<ReferenceModel> references = Utilities.ClsRefPub.GetReferencesFromDoc();
-            this.DataContext= new ViewModels.RefParserModel(references);
-        }   
+            InitializeComponent();
+            List<ReferenceModel> references = new List<ReferenceModel>();
+            this.DataContext = new ViewModels.XrefViewModel();
+        }
     }
 }

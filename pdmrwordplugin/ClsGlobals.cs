@@ -14,6 +14,7 @@ namespace pdmrwordplugin
         public const string PROJ_TITLE = "PDMR Word Plug-in v1.0";
         public static string APP_PATH = @"%appdata%\pdmrplugin\";
         public const string REF_STYLES_CONFIG = "ReferenceStyles.xml";
+        public const string REF_BOOK_NAME = "REFMain";
         public static Models.referencestyles gReferencestyles { set; get; }
     }
 }

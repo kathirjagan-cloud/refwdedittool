@@ -1,12 +1,16 @@
 ﻿using CiteProc;
 using CiteProc.Data;
+using pdmrwordplugin.Functions;
+using pdmrwordplugin.Taskpane;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Windows.Controls;
 using Office = Microsoft.Office.Core;
 
 // TODO:  Follow these steps to enable the Ribbon (XML) item:
@@ -58,17 +62,51 @@ namespace pdmrwordplugin
 
         public void BtnClick(Office.IRibbonControl control)
         {
-            AddReferenceUI();
+            switch (control.Id)
+            {
+                case "btnsetrefsel":
+                    SetReferenceArea();
+                    break;
+                case "btnprocessXref":
+                    AddReferenceUI("Xref");
+                    break;
+                case "btnprocessref":
+                    AddReferenceUI("Reference");
+                    break;
+                default:
+                    break;
+            }            
         }
 
-        public void AddReferenceUI()
+        public void SetReferenceArea()
+        {            
+            ClsCommonUtils.SetReferenceRangebyBook();
+        }
+
+        public void AddReferenceUI(string wtype)
         {
             Microsoft.Office.Tools.CustomTaskPane objPane;
-            Usrtaskpane oCtrl = new Usrtaskpane();
-            objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl, ClsGlobals.PROJ_TITLE);
-            objPane.Control.Dock = System.Windows.Forms.DockStyle.Fill;
-            objPane.Width = 400;
-            objPane.Visible = true;
+            switch (wtype)
+            {
+                case "Reference":
+                    Usrtaskpane oCtrl = new Usrtaskpane();                    
+                    objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl, ClsGlobals.PROJ_TITLE);
+                    objPane.Control.Dock = System.Windows.Forms.DockStyle.Fill;
+                    objPane.Width = 400;
+                    objPane.Visible = true;
+                    break;
+                case "Xref":
+                    Globals.ThisAddIn.Application.ActiveDocument.ActiveWindow.View.Type = Microsoft.Office.Interop.Word.WdViewType.wdNormalView;
+                    Globals.ThisAddIn.Application.ActiveDocument.ActiveWindow.View.RevisionsView = Microsoft.Office.Interop.Word.WdRevisionsView.wdRevisionsViewFinal;
+                    UsrXrefTaskpane oCtrl1 = new UsrXrefTaskpane();                    
+                    objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl1, ClsGlobals.PROJ_TITLE);
+                    objPane.Control.Dock = System.Windows.Forms.DockStyle.Fill;
+                    objPane.Width = 400;
+                    objPane.Visible = true;
+                    break;
+                default:
+                    break;
+            }            
         }
 
         #endregion

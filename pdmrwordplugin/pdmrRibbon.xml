@@ -3,9 +3,13 @@
   <ribbon>
     <tabs>
       <tab id="CustomTab" label="PDMR Word Plug-in">
-        <group id="SimpleControls" label="Reference Online">
-          <button id="Button1" imageMso="FileSave" size="large"
-            label="Reference Structuring" onAction="BtnClick"/>
+        <group id="SimpleControls" label="Reference Utilities">
+          <button id="btnsetrefsel" imageMso="SelectObjects" size="large" label="Select \ Set Reference Area" onAction="BtnClick"/>
+          <separator id="sep1"/>
+          <menu id="mnuVanRefs" itemSize="large" imageMso="ClientAdvancedObjectsMenu" size="large" label="Vancouver references">
+            <button id="btnprocessXref" imageMso="ContactWebPage" label="Find X-ref citations" onAction="BtnClick" description="Find vancouver citations"/>
+            <button id="btnprocessref" imageMso="ContactWebPage" label="Reference Structuring" onAction="BtnClick" description="Search references on Pubmed and structure the references"/>
+          </menu>
         </group>
       </tab>
     </tabs>

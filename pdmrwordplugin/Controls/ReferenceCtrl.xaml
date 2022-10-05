@@ -15,116 +15,162 @@
             </ResourceDictionary.MergedDictionaries>           
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid Margin="5">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="400"/>
-            <RowDefinition Height="40"/>
-        </Grid.RowDefinitions>
-        <Border Grid.Row="0" BorderThickness="0 0 0 1" Height="24" VerticalAlignment="Top" Padding="2" Background="DarkGreen" >
-            <TextBlock Text="References Styling" FontSize="12" FontWeight="SemiBold" Foreground="White"/>
-        </Border>
-        <Grid Grid.Row="1" Margin="2" >
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
-                <RowDefinition Height="100"/>
-                <RowDefinition Height="100"/>
-                <RowDefinition Height="155"/>
-            </Grid.RowDefinitions>
-            <ComboBox x:Name="cmbStyles" VerticalAlignment="Top" Grid.Row="0" Height="30" MinWidth="200" 
+    <Grid>
+        <TabControl SelectedIndex="{Binding MainTabIndex}" materialDesign:ShadowAssist.ShadowDepth="Depth1" Style="{StaticResource MaterialDesignFilledTabControl}" materialDesign:ColorZoneAssist.Mode="Custom" 
+                    materialDesign:ColorZoneAssist.Background="WhiteSmoke">
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border Name="Panel" BorderBrush="Blue">
+                                    <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Panel" Property="BorderThickness" Value="0 0 0 2"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter TargetName="Panel" Property="BorderThickness" Value="0 0 0 0"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
+            <TabItem>
+                <TabItem.Header>
+                    <Border>
+                        <StackPanel Orientation="Vertical">
+                            <materialDesign:PackIcon Kind="ViewDashboardEdit" Height="24" Width="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="References Styling" FontWeight="DemiBold"/>
+                        </StackPanel>
+                    </Border>
+                </TabItem.Header>
+                <Grid Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="400"/>
+                        <RowDefinition Height="40"/>
+                    </Grid.RowDefinitions>                    
+                    <Grid Margin="2" Grid.Row="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="40"/>
+                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="155"/>
+                        </Grid.RowDefinitions>
+                        <ComboBox x:Name="cmbStyles" VerticalAlignment="Top" Grid.Row="0" Height="30" MinWidth="200" 
                       materialDesign:TextFieldAssist.PrefixText="Reference Style: "
-                      HorizontalAlignment="Left" Style="{StaticResource MaterialDesignOutlinedComboBox}" Padding="5" />
-            <GroupBox Grid.Row="1" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
+                      HorizontalAlignment="Left" Style="{StaticResource MaterialDesignOutlinedComboBox}" Padding="5" Margin="2,4,0,0"/>
+                        <GroupBox Grid.Row="1" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
-                <GroupBox.Header>
-                    <TextBlock Text="Original Reference" FontWeight="SemiBold"/>
-                </GroupBox.Header>
-                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
-            </GroupBox>
-            <GroupBox Grid.Row="2" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
+                            <GroupBox.Header>
+                                <TextBlock Text="Original Reference" FontWeight="SemiBold"/>
+                            </GroupBox.Header>
+                            <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
+                        </GroupBox>
+                        <GroupBox Grid.Row="2" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
-                <GroupBox.Header>
-                    <TextBlock Text="Compared Reference" FontWeight="SemiBold"/>
-                </GroupBox.Header>
-                <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.RefCompText,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
-            </GroupBox>
-            <GroupBox Grid.Row="3" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
+                            <GroupBox.Header>
+                                <TextBlock Text="Compared Reference" FontWeight="SemiBold"/>
+                            </GroupBox.Header>
+                            <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.RefCompText,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
+                        </GroupBox>
+                        <GroupBox Grid.Row="3" Padding="4" materialDesign:ColorZoneAssist.Mode="Custom" 
                       materialDesign:ColorZoneAssist.Foreground="Black" materialDesign:ColorZoneAssist.Background="#D9D9D9" Style="{StaticResource MaterialDesignGroupBox}">
-                <GroupBox.Header>
-                    <TextBlock Text="Structured Reference" FontWeight="SemiBold"/>
-                </GroupBox.Header>
-                <TabControl Background="{x:Null}" BorderBrush="{x:Null}" materialDesign:ShadowAssist.ShadowDepth="Depth1" materialDesign:ShadowAssist.ShadowEdges="All" SelectedIndex="{Binding SelTabIndex}">
-                    <TabControl.Resources>
-                        <Style TargetType="TabItem">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="TabItem">
-                                        <Border Name="Panel" BorderBrush="Blue">
-                                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2"/>
-                                        </Border>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsSelected" Value="True">
-                                                <Setter TargetName="Panel" Property="BorderThickness" Value="0 0 0 2"/>
-                                            </Trigger>
-                                            <Trigger Property="IsSelected" Value="False">
-                                                <Setter TargetName="Panel" Property="BorderThickness" Value="0 0 0 0"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </TabControl.Resources>
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="Structured" FontWeight="DemiBold"/>
-                        </TabItem.Header>
-                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
-                    </TabItem>
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="Pubmed" FontWeight="DemiBold"/>
-                        </TabItem.Header>
-                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.RefStrucText,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
-                    </TabItem>
-                    <TabItem>
-                        <TabItem.Header>
-                            <TextBlock Text="CrossRef" FontWeight="DemiBold"/>
-                        </TabItem.Header>
-                        <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
-                    </TabItem>
-                </TabControl>
-            </GroupBox>
-        </Grid>
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Width="80" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0" 
+                            <GroupBox.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Structured Reference" FontWeight="SemiBold"/>
+                                    <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Height="16" Width="16" Margin="20,0,0,0" Padding="0" Command="{Binding SearchOnlineTermCmd}">
+                                        <materialDesign:PackIcon Kind="Google" Height="16" Width="16" Padding="0" Margin="0"/>
+                                    </Button>
+                                    <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Height="16" Width="16" Margin="5,0,0,0" Padding="0">
+                                        <materialDesign:PackIcon Kind="AlphabetCBox" Height="16" Width="16" Padding="0" Margin="0"/>
+                                    </Button>
+                                </StackPanel>
+                            </GroupBox.Header>
+                            <TabControl Background="{x:Null}" BorderBrush="{x:Null}" materialDesign:ShadowAssist.ShadowDepth="Depth1" SelectedIndex="{Binding SelTabIndex}" 
+                                        materialDesign:ColorZoneAssist.Mode="Custom" materialDesign:ColorZoneAssist.Background="WhiteSmoke">
+                                <TabControl.Resources>
+                                    <Style TargetType="TabItem">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="TabItem">
+                                                    <Border Name="Panel" BorderBrush="Blue">
+                                                        <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,2"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="Panel" Property="BorderThickness" Value="0 0 0 2"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsSelected" Value="False">
+                                                            <Setter TargetName="Panel" Property="BorderThickness" Value="0 0 0 0"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </TabControl.Resources>
+                                <TabItem>
+                                    <TabItem.Header>
+                                        <TextBlock Text="Structured" FontWeight="DemiBold"/>
+                                    </TabItem.Header>
+                                    <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.ReftextHtml,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
+                                </TabItem>
+                                <TabItem>
+                                    <TabItem.Header>
+                                        <TextBlock Text="Pubmed" FontWeight="DemiBold"/>
+                                    </TabItem.Header>
+                                    <RichTextBox FontSize="13" local:RichTextBoxHelper.DocumentXaml="{Binding SelReference.RefStrucText,UpdateSourceTrigger=PropertyChanged}" BorderBrush="{x:Null}"/>
+                                </TabItem>
+                            </TabControl>
+                        </GroupBox>
+                    </Grid>
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" Width="80" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0" 
                     materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12">
-                <StackPanel Orientation="Horizontal" Width="75">
-                    <materialDesign:PackIcon Kind="ChevronLeft" VerticalAlignment="Center" Padding="0" Margin="0"/>
-                    <TextBlock Text="  Previous" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-            <Button Grid.Column="1" Width="80" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0"
+                            <StackPanel Orientation="Horizontal" Width="75">
+                                <materialDesign:PackIcon Kind="ChevronLeft" VerticalAlignment="Center" Padding="0" Margin="0"/>
+                                <TextBlock Text="  Previous" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="1" Width="80" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0"
                     materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12" Command="{Binding NextReferenceCmd}">
-                <StackPanel Orientation="Horizontal" Width="60">
-                    <materialDesign:PackIcon Kind="ChevronRight" VerticalAlignment="Center" Padding="0" Margin="0"/>
-                    <TextBlock Text="  Next" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-            <Button Grid.Column="2" Width="80" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0"
+                            <StackPanel Orientation="Horizontal" Width="60">
+                                <materialDesign:PackIcon Kind="ChevronRight" VerticalAlignment="Center" Padding="0" Margin="0"/>
+                                <TextBlock Text="  Next" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Column="2" Width="80" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0"
                     materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12">
-                <StackPanel Orientation="Horizontal" Width="60">
-                    <materialDesign:PackIcon Kind="TickCircleOutline" VerticalAlignment="Center" Padding="0" Margin="0"/>
-                    <TextBlock Text="  Apply" VerticalAlignment="Center"/>
-                </StackPanel>
-            </Button>
-        </Grid>
-        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" VerticalAlignment="Center" Width="50" Height="50" Visibility="{Binding Showprogress,Converter={StaticResource BooleanToVisibilityConverter}}"
+                            <StackPanel Orientation="Horizontal" Width="60">
+                                <materialDesign:PackIcon Kind="TickCircleOutline" VerticalAlignment="Center" Padding="0" Margin="0"/>
+                                <TextBlock Text="  Apply" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" VerticalAlignment="Center" Width="50" Height="50" Visibility="{Binding Showprogress,Converter={StaticResource BooleanToVisibilityConverter}}"
                      Grid.RowSpan="3" />
+                </Grid>
+            </TabItem>
+            <TabItem Visibility="{Binding ToShowSearch, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TabItem.Header>
+                    <Border>
+                        <StackPanel Orientation="Vertical">
+                            <materialDesign:PackIcon Kind="SearchWeb" Height="24" Width="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Search Online" FontWeight="DemiBold"/>
+                        </StackPanel>
+                    </Border>
+                </TabItem.Header>
+                <WebBrowser x:Name="wbbrowser" local:WebBrowserBehaviors.BindableSource="{Binding SearchTextOnline}"/>
+            </TabItem>
+        </TabControl>
     </Grid>
 </UserControl>
