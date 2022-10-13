@@ -12,5 +12,6 @@ namespace pdmrwordplugin.Models
         public string XrefText { get; set; }
         public string XrefBookmark { get; set; }
         public string XrefContext { get; set; }
+        public bool XrefSelected { get; set; }
     }
 }

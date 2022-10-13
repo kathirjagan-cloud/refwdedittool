@@ -96,6 +96,9 @@ namespace pdmrwordplugin
                     objPane.Visible = true;
                     break;
                 case "Xref":
+                    if (!ClsCommonUtils.CreateXrefStyles()) { 
+
+                        return; }
                     Globals.ThisAddIn.Application.ActiveDocument.ActiveWindow.View.Type = Microsoft.Office.Interop.Word.WdViewType.wdNormalView;
                     Globals.ThisAddIn.Application.ActiveDocument.ActiveWindow.View.RevisionsView = Microsoft.Office.Interop.Word.WdRevisionsView.wdRevisionsViewFinal;
                     UsrXrefTaskpane oCtrl1 = new UsrXrefTaskpane();                    

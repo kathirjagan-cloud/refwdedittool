@@ -27,6 +27,6 @@ namespace pdmrwordplugin.Controls
             InitializeComponent();
             List<ReferenceModel> references = new List<ReferenceModel>();
             this.DataContext = new ViewModels.XrefViewModel();
-        }
+        }        
     }
 }

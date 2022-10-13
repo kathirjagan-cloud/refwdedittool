@@ -16,16 +16,16 @@
             <DataTemplate x:Key="ListXrefTemplate">
                 <Grid >
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="45"/>
+                        <ColumnDefinition Width="65"/>
+                        <!--<ColumnDefinition Width="45"/>-->
                         <ColumnDefinition Width="230"/>                        
                         <ColumnDefinition Width="55"/>
                     </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Column="0" />
-                    <TextBlock FontWeight="Bold" Foreground="Blue" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding XrefText}" Grid.Column="1" FontSize="10"/>
-                    <TextBlock Text="{Binding XrefContext}" Grid.Column="2" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,0,10,0"/>                    
-                    <Button Grid.Column="3" Height="24" Width="50" Style="{StaticResource MaterialDesignOutlinedButton}" Padding="0" Margin="0" Content="Mark" FontSize="12" HorizontalAlignment="Left"
-                            VerticalAlignment="Top"/>         
+                    <CheckBox Grid.Column="0" FontWeight="Bold" IsChecked="{Binding XrefSelected}" Content="{Binding XrefText}"/>
+                    <!--<TextBlock FontWeight="Bold" Foreground="Blue" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding XrefText}" Grid.Column="1" FontSize="10"/>-->
+                    <TextBlock Text="{Binding XrefContext}" Grid.Column="1" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,0,10,0"/>                    
+                    <Button Grid.Column="2" Height="24" Width="50" Style="{StaticResource MaterialDesignOutlinedButton}" Padding="0" Margin="0" Content="Mark" FontSize="12" HorizontalAlignment="Left"
+                            VerticalAlignment="Top" Command="{Binding CmdMarkSelection}"/>         
                 </Grid>
             </DataTemplate>
         </ResourceDictionary>
@@ -74,13 +74,13 @@
                             <ColumnDefinition />
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <RadioButton Content="Select All" Grid.Column="0" FontWeight="SemiBold"/>
-                        <RadioButton Content="Unselect All" Grid.Column="1"  FontWeight="SemiBold"/>
+                        <RadioButton Content="Select All" Grid.Column="0" FontWeight="SemiBold" Command="{Binding CmdToselectAll}"/>
+                        <RadioButton Content="Unselect All" Grid.Column="1"  FontWeight="SemiBold" Command="{Binding CmdToUnselectAll}"/>
                         <Button Height="24" Width="110" Style="{StaticResource MaterialDesignOutlinedButton}" Content="Mark Selected" 
                                 HorizontalAlignment="Right"  Grid.Column="2" Padding="0" Margin="0,0,5,0"/>
                     </Grid>
                     <Separator Grid.Row="1"/>
-                    <ListBox Style="{StaticResource MaterialDesignListBox}" ItemTemplate="{StaticResource ListXrefTemplate}" ItemsSource="{Binding SuperXrefs}" Grid.Row="2" Margin="0,10,0,0"/>
+                    <ListView Style="{StaticResource MaterialDesignListView}" ItemTemplate="{StaticResource ListXrefTemplate}" ItemsSource="{Binding SuperXrefs}" Grid.Row="2" Margin="0,10,0,0"/>
                 </Grid>
             </TabItem>
             <TabItem>

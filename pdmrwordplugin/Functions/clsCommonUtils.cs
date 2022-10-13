@@ -1,4 +1,5 @@
-﻿using pdmrwordplugin.Models;
+﻿using CiteProc.v10;
+using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -113,6 +114,58 @@ namespace pdmrwordplugin.Functions
                 return null;
             }
             catch { return null; }
+        }
+
+        public static bool IsXrefStylePresent(string wstylname)
+        {
+            try
+            {
+                string stmp = Globals.ThisAddIn.Application.ActiveDocument.Styles[wstylname].Description;
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public static bool CreateXrefStyles()
+        {
+            try
+            {
+                bool isSuperscript = true;
+                string stylename = ClsGlobals.XREF_SUP_STYLE_NAME;
+                if (!IsXrefStylePresent(stylename))
+                {
+                    if (!CreateStylebyName(stylename, isSuperscript))
+                        return false;
+                }
+                isSuperscript = false;
+                stylename = ClsGlobals.XREF_ONLINE_STYLE_NAME;
+                if (!IsXrefStylePresent(stylename))
+                {
+                    if (!CreateStylebyName(stylename, isSuperscript))
+                        return false;
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private static bool CreateStylebyName(string styletitle, bool isfmtSuper)
+        {
+            try
+            {
+                Word.Style ostyl = Globals.ThisAddIn.Application.ActiveDocument.Styles.Add(styletitle, Word.WdStyleType.wdStyleTypeCharacter);
+                if (isfmtSuper)
+                    ostyl.Font.Superscript = 1;
+                ostyl.Font.Bold = 0;
+                foreach (Word.Border bdr in ostyl.Font.Borders)
+                {
+                    bdr.LineStyle = Word.WdLineStyle.wdLineStyleSingle;
+                    bdr.Color = Word.WdColor.wdColorSeaGreen;
+                    bdr.LineWidth = Word.WdLineWidth.wdLineWidth050pt;
+                }
+                return true;
+            }
+            catch { return false; }
         }
 
         public static string GetContextfromRng(Word.Range objrng)
