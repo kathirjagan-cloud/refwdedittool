@@ -250,5 +250,18 @@ namespace pdmrwordplugin.Functions
             catch { return null; }
         }
 
+        public static void SetStyelinRange(Word.Range wrng, string wstyle)
+        {
+            int bold = wrng.Font.Bold;
+            int italic = wrng.Font.Italic;
+            int superscript = wrng.Font.Superscript;
+            if (!string.IsNullOrEmpty(wstyle))
+                wrng.set_Style(wstyle);
+            else
+                wrng.Font.Reset();
+            wrng.Font.Bold = bold;
+            wrng.Font.Italic = italic;
+            wrng.Font.Superscript = superscript;
+        }
     }
 }

@@ -192,6 +192,7 @@
     <Compile Include="Controls\XrefCtrl.xaml.cs">
       <DependentUpon>XrefCtrl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\BooleantoTextConverter.cs" />
     <Compile Include="Functions\clsCommonUtils.cs" />
     <Compile Include="Models\ReferenceModel.cs" />
     <Compile Include="Models\RefStyles.cs" />

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:pdmrwordplugin.Controls"             
+             xmlns:conv="clr-namespace:pdmrwordplugin.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes" 
              mc:Ignorable="d" FontFamily="Segoe UI"
              d:DesignHeight="500" d:DesignWidth="350" Background="White">
@@ -13,6 +14,7 @@
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Lime" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <conv:BooleantoTextConverter x:Key="BooleantoTextConverter"/>
             <DataTemplate x:Key="ListXrefTemplate">
                 <Grid >
                     <Grid.ColumnDefinitions>
@@ -21,11 +23,11 @@
                         <ColumnDefinition Width="230"/>                        
                         <ColumnDefinition Width="55"/>
                     </Grid.ColumnDefinitions>
-                    <CheckBox Grid.Column="0" FontWeight="Bold" IsChecked="{Binding XrefSelected}" Content="{Binding XrefText}"/>
+                    <CheckBox Grid.Column="0" FontWeight="Bold" IsChecked="{Binding XrefCheckbox}" Content="{Binding XrefText}"/>
                     <!--<TextBlock FontWeight="Bold" Foreground="Blue" VerticalAlignment="Center" HorizontalAlignment="Left" Text="{Binding XrefText}" Grid.Column="1" FontSize="10"/>-->
-                    <TextBlock Text="{Binding XrefContext}" Grid.Column="1" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,0,10,0"/>                    
-                    <Button Grid.Column="2" Height="24" Width="50" Style="{StaticResource MaterialDesignOutlinedButton}" Padding="0" Margin="0" Content="Mark" FontSize="12" HorizontalAlignment="Left"
-                            VerticalAlignment="Top" Command="{Binding CmdMarkSelection}"/>         
+                    <TextBlock Text="{Binding XrefContext}" Grid.Column="1" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="0,0,10,0"/>
+                    <Button Grid.Column="2" Height="24" Width="50" Style="{StaticResource MaterialDesignOutlinedButton}" Padding="0" Margin="0" Content="{Binding XrefSelected,UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BooleantoTextConverter}}" FontSize="12" HorizontalAlignment="Left"
+                            VerticalAlignment="Top" Command="{Binding Path=DataContext.CmdMarkSelection,RelativeSource={RelativeSource AncestorType={x:Type ListView}}}" CommandParameter="{Binding}"/>         
                 </Grid>
             </DataTemplate>
         </ResourceDictionary>
@@ -76,7 +78,7 @@
                         </Grid.ColumnDefinitions>
                         <RadioButton Content="Select All" Grid.Column="0" FontWeight="SemiBold" Command="{Binding CmdToselectAll}"/>
                         <RadioButton Content="Unselect All" Grid.Column="1"  FontWeight="SemiBold" Command="{Binding CmdToUnselectAll}"/>
-                        <Button Height="24" Width="110" Style="{StaticResource MaterialDesignOutlinedButton}" Content="Mark Selected" 
+                        <Button Height="24" Width="110" Style="{StaticResource MaterialDesignOutlinedButton}" Content="Mark Selected" Command="{Binding CmdMarkAllSelection}"
                                 HorizontalAlignment="Right"  Grid.Column="2" Padding="0" Margin="0,0,5,0"/>
                     </Grid>
                     <Separator Grid.Row="1"/>
@@ -102,7 +104,10 @@
                 </TabItem.Header>
             </TabItem>
         </TabControl>
-        <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" VerticalAlignment="Center" Width="50" Height="50" 
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center">            
+            <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" VerticalAlignment="Center" Width="50" Height="50" 
                      Visibility="{Binding Showprogress,Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            <TextBlock HorizontalAlignment="Center" Text="{Binding Progresstext}" FontWeight="SemiBold" Visibility="{Binding Showprogress,Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        </StackPanel>
     </Grid>
 </UserControl>

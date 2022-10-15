@@ -1,4 +1,5 @@
-﻿using pdmrwordplugin.Models;
+﻿using pdmrwordplugin.Functions;
+using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +17,17 @@ namespace pdmrwordplugin.ViewModels
         private void RaisePropertyChanged(string property)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        }
+
+        private string _progresstext;
+        public string Progresstext
+        {
+            get { return _progresstext; }
+            set
+            {
+                _progresstext = value;
+                RaisePropertyChanged("Progresstext");
+            }
         }
 
         private ObservableCollection<XrefModel> _SuperXrefs;
@@ -43,13 +55,14 @@ namespace pdmrwordplugin.ViewModels
         public RelayCommand CmdToselectAll { get; set; }
         public RelayCommand CmdToUnselectAll { get; set; }
         public RelayCommand CmdMarkSelection { get; set; }
+        public RelayCommand CmdMarkAllSelection { get; set; }
 
         public void SelectAllXref()
         {
             if (SuperXrefs != null)
             {
                 var list = SuperXrefs.ToList();
-                list.All(x => { x.XrefSelected = true; return true; });
+                list.All(x => { x.XrefCheckbox = true; return true; });
                 SuperXrefs = new ObservableCollection<XrefModel>(list);                
             }
         }
@@ -59,8 +72,41 @@ namespace pdmrwordplugin.ViewModels
             if (SuperXrefs != null)
             {
                 var list = SuperXrefs.ToList();
-                list.All(x => { x.XrefSelected = false; return true; });
+                list.All(x => { x.XrefCheckbox = false; return true; });
                 SuperXrefs = new ObservableCollection<XrefModel>(list);
+            }
+        }
+
+
+        private void ApplySelectedorAll(XrefModel xrefmod)
+        {
+            try
+            {
+                Word.Range orange = Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[xrefmod.XrefBookmark].Range.Duplicate;
+                Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(orange);
+                if (!xrefmod.XrefSelected)
+                {
+                    ClsCommonUtils.SetStyelinRange(orange, ClsGlobals.XREF_SUP_STYLE_NAME);
+                }
+                else { ClsCommonUtils.SetStyelinRange(orange, ""); }                
+            }
+            catch { }
+        }
+
+
+        public void ApplyXrefMarkAll()
+        {
+            if(SuperXrefs!=null)
+            {
+                foreach(XrefModel xmod in SuperXrefs)
+                {
+                    if (xmod.XrefCheckbox)
+                    {
+                        ApplySelectedorAll(xmod);
+                        xmod.XrefSelected = !xmod.XrefSelected;                        
+                    }
+                    xmod.XrefCheckbox = false;
+                }
             }
         }
 
@@ -68,23 +114,28 @@ namespace pdmrwordplugin.ViewModels
         {
             if(param is XrefModel xref)
             {
-                if(Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(xref.XrefBookmark))
+                if (Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(xref.XrefBookmark))
                 {
-                    Word.Range orange = Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[xref.XrefBookmark].Range.Duplicate;
-                    Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(orange);                    
+                    ApplySelectedorAll(xref);
+                    xref.XrefSelected = !xref.XrefSelected;                    
                 }
             }
-        }
+        }        
 
         public XrefViewModel()
         {
             CmdToselectAll = new RelayCommand(m => SelectAllXref());
             CmdToUnselectAll = new RelayCommand(m => UnSelectAllXref());
             CmdMarkSelection = new RelayCommand(m => ApplyXrefMark(m));
+            CmdMarkAllSelection = new RelayCommand(m => ApplyXrefMarkAll());
             Showprogress = true;
-            Utilities.clsVanXref.ReadCitationsfromDoc().ContinueWith(t =>
+            IProgress<string> xprogress = new Progress<string>(s =>
             {
-                Showprogress = false;
+                Progresstext = s;
+            });
+            Utilities.clsVanXref.ReadCitationsfromDoc(xprogress).ContinueWith(t =>
+            {
+                Showprogress = false;                
                 if (!t.IsFaulted && t.Result != null)
                     SuperXrefs = new ObservableCollection<XrefModel>(t.Result);
             });

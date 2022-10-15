@@ -1,4 +1,6 @@
-﻿using pdmrwordplugin.Functions;
+﻿using DocumentFormat.OpenXml.Presentation;
+using OpenXmlPowerTools;
+using pdmrwordplugin.Functions;
 using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
@@ -16,40 +18,43 @@ namespace pdmrwordplugin.Utilities
 {
     public static class clsVanXref
     {
-        public static Task<List<XrefModel>> ReadCitationsfromDoc()
+        public static Task<List<XrefModel>> ReadCitationsfromDoc(IProgress<string> wprogress)
         {
             return Task.Run(() =>
             {
-                return FindCitationsinDoc();
+                return FindCitationsinDoc(wprogress);
             });
         }
 
-        public static List<XrefModel> FindCitationsinDoc()
+        public static List<XrefModel> FindCitationsinDoc(IProgress<string> showprogress)
         {
             try
             {
                 Globals.ThisAddIn.Application.ScreenUpdating = false;
                 List<XrefModel> tmplist = new List<XrefModel>();
                 int booktostart = 0;
-                var list = FindCrossRefs("", "Super", booktostart, true);
+                showprogress.Report("Searching for Superscript citations");
+                var list = FindCrossRefs("", "Super", booktostart, showprogress, true);                
                 if (list != null && list.Count > 0)
                 {
                     int.TryParse(list.LastOrDefault().XrefBookmark.Replace("XREF_", ""), out booktostart);
                     tmplist.AddRange(list);
                 }
-                list = FindCrossRefs(@"(\\[)(([0-9]+)([ ,\\;\\-\\–]+)?)+(\\])", "Square", booktostart, false);
+                showprogress.Report("Searching for Square citations");
+                list = FindCrossRefs(@"(\\[)(([0-9]+)([ ,\\;\\-\\–]+)?)+(\\])", "Square", booktostart, showprogress, false);
                 if (list != null && list.Count > 0)
                 {
                     int.TryParse(list.LastOrDefault().XrefBookmark.Replace("XREF_", ""), out booktostart);
                     tmplist.AddRange(list);
                 }
-                list = FindCrossRefs(@"(\()(([0-9]+)([ ,\;\-\–]+)?)+(\))", "Round", booktostart, false);
+                showprogress.Report("Searching for Round citations");
+                list = FindCrossRefs(@"(\()(([0-9]+)([ ,\;\-\–]+)?)+(\))", "Round", booktostart, showprogress, false);
                 if (list != null && list.Count > 0)
                 {
                     int.TryParse(list.LastOrDefault().XrefBookmark.Replace("XREF_", ""), out booktostart);
                     tmplist.AddRange(list);
                 }
-                list = FindCrossRefs(@"[rR]ef([eference(s)?])?([.: ]+)?(([\[\(])?(([0-9]+)([, \-\–]+)?)+([\]\)])?([, \-\–]+)?)+", "Ref", booktostart, false);
+                list = FindCrossRefs(@"[rR]ef([eference(s)?])?([.: ]+)?(([\[\(])?(([0-9]+)([, \-\–]+)?)+([\]\)])?([, \-\–]+)?)+", "Ref", booktostart, showprogress, false);
                 if (list != null && list.Count > 0)
                 {
                     int.TryParse(list.LastOrDefault().XrefBookmark.Replace("XREF_", ""), out booktostart);
@@ -61,7 +66,7 @@ namespace pdmrwordplugin.Utilities
             catch { Globals.ThisAddIn.Application.ScreenUpdating = true; return null; }
         }
 
-        public static List<XrefModel> FindCrossRefs(string rgxPatrn, string strType, int bookstart, bool Suprscr = false)
+        public static List<XrefModel> FindCrossRefs(string rgxPatrn, string strType, int bookstart, IProgress<string> wxprogress, bool Suprscr = false)
         {
             try
             {
@@ -87,7 +92,7 @@ namespace pdmrwordplugin.Utilities
                         if (orgx.IsMatch(sRng.Text))
                         {
                             foreach (Match m in orgx.Matches(sRng.Text))
-                            {
+                            {                                
                                 if (alreadyfind.Contains("**" + m.Value + "**"))
                                 {
                                     alreadyfind += "**" + m.Value + "**";
@@ -162,6 +167,7 @@ namespace pdmrwordplugin.Utilities
                         orng.Find.Font.Superscript = 1;
                         while (orng.Find.Execute())
                         {
+                            wxprogress.Report("Finding text: " + orng.Text);
                             if (prvsrng != null && orng.InRange(prvsrng)) { break; }
                             if (orng.InRange(ignrRng)) { break; }
                             //orng.Select();
