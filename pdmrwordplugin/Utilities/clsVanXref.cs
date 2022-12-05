@@ -5,6 +5,7 @@ using pdmrwordplugin.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -167,10 +168,9 @@ namespace pdmrwordplugin.Utilities
                         orng.Find.Font.Superscript = 1;
                         while (orng.Find.Execute())
                         {
-                            wxprogress.Report("Finding text: " + orng.Text);
+                            wxprogress.Report("Finding text: " + orng.Text);                            
                             if (prvsrng != null && orng.InRange(prvsrng)) { break; }
-                            if (orng.InRange(ignrRng)) { break; }
-                            //orng.Select();
+                            if (orng.InRange(ignrRng)) { break; }                            
                             Word.Range tmporng = orng.Duplicate;
                             while (tmporng.Text.EndsWith(" "))
                             {
@@ -179,7 +179,17 @@ namespace pdmrwordplugin.Utilities
                             while (tmporng.Text.StartsWith(" "))
                             {
                                 tmporng.SetRange(tmporng.Start + 1, tmporng.End);
-                            }                            
+                            }
+                            if (isPrvPartialRange(tmporng)) 
+                            { 
+                                tmporng.SetRange(tmporng.Start - 1, tmporng.End);
+                                tmporng.Font.Superscript = 1;
+                            }
+                            if (isNxtPartialRange(tmporng))
+                            {
+                                tmporng.SetRange(tmporng.Start, tmporng.End + 1);
+                                tmporng.Font.Superscript = 1;
+                            }
                             if (IsValidCitRange(tmporng.Text))
                             {
                                 while (tmporng.Text.EndsWith("\r") ||
@@ -190,6 +200,13 @@ namespace pdmrwordplugin.Utilities
                                        tmporng.Text.EndsWith("."))
                                 {
                                     tmporng.SetRange(tmporng.Start, tmporng.End - 1);
+                                }
+                                while (tmporng.Text.StartsWith(".") ||
+                                      tmporng.Text.StartsWith(",") ||
+                                      tmporng.Text.StartsWith(";") ||
+                                      tmporng.Text.StartsWith(":"))
+                                {
+                                    tmporng.SetRange(tmporng.Start + 1, tmporng.End);
                                 }
                                 bookID++;
                                 fndrefs.Add(new XrefModel()
@@ -220,9 +237,58 @@ namespace pdmrwordplugin.Utilities
             return notvalid;
         }
 
+        private static bool isPrvPartialRange(Word.Range chkrng)
+        {
+            try
+            {
+                bool blnispartial = false;
+                if(!chkrng.Text.Contains("(") && chkrng.Text.Contains(")"))
+                {
+                    if(chkrng.Previous(Word.WdUnits.wdCharacter,1).Text == "(")
+                    {
+                        return true;
+                    }
+                }
+                if(!chkrng.Text.Contains("[") && chkrng.Text.Contains("]"))
+                {
+                    if (chkrng.Previous(Word.WdUnits.wdCharacter, 1).Text == "[")
+                    {
+                        return true;
+                    }
+                }
+                return blnispartial;
+            }
+            catch { return false; }
+        }
+
+        private static bool isNxtPartialRange(Word.Range chkrng)
+        {
+            try
+            {
+                bool blnispartial = false;
+                if (chkrng.Text.Contains("(") && !chkrng.Text.Contains(")"))
+                {
+                    if (chkrng.Next(Word.WdUnits.wdCharacter, 1).Text == ")")
+                    {
+                        return true;
+                    }
+                }
+                if (chkrng.Text.Contains("[") && !chkrng.Text.Contains("]"))
+                {
+                    if (chkrng.Next(Word.WdUnits.wdCharacter, 1).Text == "]")
+                    {
+                        return true;
+                    }
+                }
+                return blnispartial;
+            }
+            catch { return false; }
+        }
+
+
         private static bool IsValidCitRange(string swText)
         {
-            string[] strpuncs = new string[] { ",", " ", ";", "(", ")", "[", "]", "\u2013", "-" };
+            string[] strpuncs = new string[] { ",", ".", " ", ";", "(", ")", "[", "]", "\u2013", "-", "\r", "\n" };
             string tmptext = swText;
             foreach (string s in strpuncs)
             {

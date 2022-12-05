@@ -19,6 +19,30 @@ namespace pdmrwordplugin.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
         }
 
+        public List<string> StoreAppliedCitations { get; set; }
+
+        private string _AppliedCitations;
+        public string AppliedCitations
+        {
+            get { return _AppliedCitations; }
+            set
+            {
+                _AppliedCitations = value;
+                RaisePropertyChanged("AppliedCitations");
+            }
+        }
+
+        private string _ReferenceNumbers;
+        public string ReferenceNumbers 
+        { 
+            get { return _ReferenceNumbers; } 
+            set
+            {
+                _ReferenceNumbers = value;
+                RaisePropertyChanged("ReferenceNumbers");
+            }
+        }
+
         private string _progresstext;
         public string Progresstext
         {
@@ -84,15 +108,48 @@ namespace pdmrwordplugin.ViewModels
             {
                 Word.Range orange = Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[xrefmod.XrefBookmark].Range.Duplicate;
                 Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(orange);
-                if (!xrefmod.XrefSelected)
+                if (xrefmod.XrefSelected)
                 {
                     ClsCommonUtils.SetStyelinRange(orange, ClsGlobals.XREF_SUP_STYLE_NAME);
                 }
-                else { ClsCommonUtils.SetStyelinRange(orange, ""); }                
+                else
+                {
+                    ClsCommonUtils.SetStyelinRange(orange, "");
+                }
+                SetTextForApplied();
             }
             catch { }
         }
 
+
+        private void SetTextForApplied()
+        {
+            try
+            {
+                var listtagged = (from item in SuperXrefs where item.XrefSelected select item).ToList();
+                StoreAppliedCitations = new List<string>();
+                if (listtagged != null)
+                {
+                    foreach (var item in listtagged)
+                    {
+                        var listcits = ClsCommonUtils.GetCitationsbyRange(item.XrefText);
+                        if (listcits != null)
+                        {
+                            foreach (int i in listcits)
+                            {
+                                if (!StoreAppliedCitations.Contains(i.ToString()))
+                                {
+                                    StoreAppliedCitations.Add(i.ToString());
+                                }
+                            }
+                        }
+                    }
+                }
+                AppliedCitations = ClsCommonUtils.GetEllidedNumbers(String.Join(",", StoreAppliedCitations));
+                if(StoreAppliedCitations.Count == 0) { AppliedCitations = ""; }
+            }
+            catch { }
+        }
 
         public void ApplyXrefMarkAll()
         {
@@ -102,8 +159,8 @@ namespace pdmrwordplugin.ViewModels
                 {
                     if (xmod.XrefCheckbox)
                     {
+                        xmod.XrefSelected = !xmod.XrefSelected;
                         ApplySelectedorAll(xmod);
-                        xmod.XrefSelected = !xmod.XrefSelected;                        
                     }
                     xmod.XrefCheckbox = false;
                 }
@@ -116,8 +173,8 @@ namespace pdmrwordplugin.ViewModels
             {
                 if (Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(xref.XrefBookmark))
                 {
-                    ApplySelectedorAll(xref);
-                    xref.XrefSelected = !xref.XrefSelected;                    
+                    xref.XrefSelected = !xref.XrefSelected;
+                    ApplySelectedorAll(xref);                                 
                 }
             }
         }        
@@ -133,11 +190,15 @@ namespace pdmrwordplugin.ViewModels
             {
                 Progresstext = s;
             });
+            StoreAppliedCitations = new List<string>();
+            ReferenceNumbers = ClsCommonUtils.GetReferenecesbyArea();
             Utilities.clsVanXref.ReadCitationsfromDoc(xprogress).ContinueWith(t =>
             {
-                Showprogress = false;                
+                Showprogress = false;
                 if (!t.IsFaulted && t.Result != null)
-                    SuperXrefs = new ObservableCollection<XrefModel>(t.Result);
+                {
+                    SuperXrefs = new ObservableCollection<XrefModel>(t.Result);                                        
+                }
             });
         }
     }

@@ -24,7 +24,7 @@ using System.Runtime.InteropServices;
 
 namespace pdmrwordplugin.ViewModels
 {
-    public class RefParserModel: INotifyPropertyChanged
+    public class RefParserModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private void RaisePropertyChanged(string property)
@@ -33,12 +33,44 @@ namespace pdmrwordplugin.ViewModels
         }
 
         public RelayCommand NextReferenceCmd { set; get; }
-
         public RelayCommand SearchOnlineTermCmd { set; get; }
-        
+        public RelayCommand ApplyStyledRefs { get; set; }
+       
+        private bool _FirstRunRef;
+        public bool FirstRunRef
+        {
+            get { return _FirstRunRef; }
+            set
+            {
+                _FirstRunRef = value;
+                RaisePropertyChanged("FirstRunRef");
+            }
+        }
+
+        private bool _ShowRefProc;
+        public bool ShowRefProc
+        {
+            get { return _ShowRefProc; }
+            set
+            {
+                _ShowRefProc = value;
+                RaisePropertyChanged("ShowRefProc");
+            }
+        }
+
+        private bool _ShowActionButton;
+        public bool ShowActionButton
+        {
+            get { return _ShowActionButton; }
+            set
+            {
+                _ShowActionButton = value;
+                RaisePropertyChanged("ShowActionButton");
+            }
+        }
 
         private ObservableCollection<ReferenceModel> _ProcessReferences;
-        public ObservableCollection<ReferenceModel> ProcessReferences 
+        public ObservableCollection<ReferenceModel> ProcessReferences
         {
             get { return _ProcessReferences; }
             set
@@ -131,8 +163,10 @@ namespace pdmrwordplugin.ViewModels
                 if (nxtrng != null)
                 {
                     nxtrng.Select();
+                    Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(Globals.ThisAddIn.Application.Selection.Range);
                     ReferenceModel selmodel = GetSelectedReference();
-                    if (selmodel != null) { SelReference = selmodel; }
+                    if (selmodel != null) { SelReference = selmodel; nxtrng.Select(); }
+                    else { SelReference = null; }
                 }
             }
             catch { }
@@ -150,9 +184,9 @@ namespace pdmrwordplugin.ViewModels
                         var selref = from item in ProcessReferences
                                      where item.Refbookmark.ToLower() == bk.Name.ToLower()
                                      select item;
-                        if (selref != null && selref.Count() > 0) 
+                        if (selref != null && selref.Count() > 0)
                         { resreference = selref.FirstOrDefault(); break; }
-                    } 
+                    }
                 }
                 return resreference;
             }
@@ -162,8 +196,10 @@ namespace pdmrwordplugin.ViewModels
         public void BeginSearchTextinPubmed()
         {
             Showprogress = true;
+            ShowActionButton = false;
             Utilities.clsRefSearchOnline.ISearchPubmed(SelReference).ContinueWith(t =>
             {
+                ShowActionButton = true;
                 Showprogress = false;
                 if (!t.IsFaulted && t.Result != null)
                 {
@@ -237,7 +273,7 @@ namespace pdmrwordplugin.ViewModels
 
                     elem = xDoc.XPathSelectElement(".//Issue");
                     if (elem != null) { classObject.issue = elem.Value; }
-                    
+
                     elem = xDoc.XPathSelectElement(".//PubDate/Year");
                     if (elem != null) { classObject.date = elem.Value; }
 
@@ -246,10 +282,10 @@ namespace pdmrwordplugin.ViewModels
 
                     elem = xDoc.XPathSelectElement(".//MedlineJournalInfo/MedlineTA");
                     if (elem != null) { classObject.containertitleabbrv = elem.Value; }
-                    
+
                     elem = xDoc.XPathSelectElement(".//MedlinePgn");
-                    if (elem != null) { classObject.pages= elem.Value; }
-                    
+                    if (elem != null) { classObject.pages = elem.Value; }
+
                     elem = xDoc.XPathSelectElement(".//ArticleTitle");
                     if (elem != null) { classObject.title = elem.Value; }
 
@@ -259,7 +295,7 @@ namespace pdmrwordplugin.ViewModels
             }
             catch { return null; }
         }
-       
+
 
         private static string GetFormatTextPubmed(string xmlstr)
         {
@@ -425,26 +461,80 @@ namespace pdmrwordplugin.ViewModels
                 SearchTextOnline = "https://www.google.com/search?q=" + SelReference.Reftext;
         }
 
+        public void FormatReferenceinSel()
+        {
+            try
+            {
+                if (SelReference == null) return;
+                if (SelReference.ReftextHtml != null)
+                {
+                    string orngBK = SelReference.Refbookmark;
+                    Word.Range orng = Globals.ThisAddIn.Application.Selection.Range.Duplicate;
+                    if (Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(orngBK))
+                    {
+                        orng = Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[orngBK].Range.Duplicate;
+                    }
+                    orng.Text = SelReference.ReftextHtml;
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        public void DoProcessReferences()
+        {
+            try
+            {
+                Showprogress = true;
+                ShowActionButton = false;
+                Utilities.ClsRefPub.IParseReferencebyExe(docreferences).ContinueWith(t =>
+                {
+                    Showprogress = false;
+                    ShowActionButton = true;
+                    if (!t.IsFaulted && t.Result != null)
+                    {
+                        MainTabIndex = 1;
+                        FirstRunRef = false;
+                        ShowRefProc = true;
+                        ProcessReferences = new ObservableCollection<ReferenceModel>(t.Result);
+                        Globals.ThisAddIn.Application.Selection.Paragraphs.First.Range.Select();
+                        ReferenceModel defaultmodl = ProcessReferences.FirstOrDefault();
+                        if (defaultmodl != null)
+                        {
+                            if (Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(defaultmodl.Refbookmark))
+                            {
+                                Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[defaultmodl.Refbookmark].Range.Select();
+                                Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(Globals.ThisAddIn.Application.Selection.Range);
+                            }
+                        }
+                        SelReference = defaultmodl;
+                    }
+                });
+            }
+            catch { }
+        }
+
+        private List<ReferenceModel> docreferences { set; get; }
+
+        public RelayCommand StartRefProcess { get; set; }
+
         #region Initialize
 
         #endregion
 
-        public RefParserModel(List<ReferenceModel> docreferences)
+        public RefParserModel(List<ReferenceModel> _docreferences)
         {
             NextReferenceCmd = new RelayCommand(m => DoNextReference());
             SearchOnlineTermCmd = new RelayCommand(m => ToSearchOnline());
+            ApplyStyledRefs = new RelayCommand(m => FormatReferenceinSel());
             ProcessReferences = new ObservableCollection<ReferenceModel>();
-            Showprogress = true;            
-            Utilities.ClsRefPub.IParseReferencebyExe(docreferences).ContinueWith(t =>
-            {
-                Showprogress = false;
-                if (!t.IsFaulted && t.Result != null)
-                {
-                    ProcessReferences = new ObservableCollection<ReferenceModel>(t.Result);
-                    Globals.ThisAddIn.Application.Selection.Paragraphs.First.Range.Select();
-                    SelReference = ProcessReferences.FirstOrDefault();
-                }
-            });
+            StartRefProcess = new RelayCommand(m => DoProcessReferences());
+            docreferences = new List<ReferenceModel>(_docreferences);
+            FirstRunRef = true;
+            ShowRefProc = false;
+            MainTabIndex = 0;
         }
     }
 }

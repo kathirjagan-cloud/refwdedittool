@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -81,6 +82,24 @@ namespace pdmrwordplugin.Functions
             return distance[sourceWordCount, targetWordCount];
         }
 
+        public static void TRACK_ON()
+        {
+            try
+            {                
+                Globals.ThisAddIn.Application.ActiveDocument.TrackRevisions = true;
+            }
+            catch { }
+        }
+
+        public static void TRACK_OFF()
+        {
+            try
+            {
+                Globals.ThisAddIn.Application.ActiveDocument.TrackRevisions = false;
+            }
+            catch { }
+        }
+
 
         public static void SetReferenceRangebyBook()
         {
@@ -92,6 +111,10 @@ namespace pdmrwordplugin.Functions
                 {
                     MessageBox.Show(ClsMessages.REF_MESSAGE_4, ClsGlobals.PROJ_TITLE);
                 }
+                bool revstateindoc = Globals.ThisAddIn.Application.ActiveDocument.TrackRevisions;
+                ClsCommonUtils.TRACK_OFF();
+                orng.ListFormat.ConvertNumbersToText();
+                Globals.ThisAddIn.Application.ActiveDocument.TrackRevisions = revstateindoc;
                 Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Add(ClsGlobals.REF_BOOK_NAME, orng.Duplicate);
             }
             catch { MessageBox.Show(ClsMessages.REF_MESSAGE_3, ClsGlobals.PROJ_TITLE); }
@@ -263,5 +286,129 @@ namespace pdmrwordplugin.Functions
             wrng.Font.Italic = italic;
             wrng.Font.Superscript = superscript;
         }
+
+        public static string GetEllidedNumbers(string stext)
+        {
+            try
+            {
+                var result = string.Empty;
+                if (stext.Contains(","))
+                {
+                    List<int> numberslist = new List<int>();
+                    foreach (string s in stext.Split(','))
+                    {
+                        if (int.TryParse(s, out int x))
+                        {
+                            numberslist.Add(x);
+                        }
+                    }
+                    if (numberslist.Count > 0)
+                    {
+                        int[] numbers = numberslist.ToArray();
+                        int temp = numbers[0], start, end;
+                        for (int i = 0; i < numbers.Length; i++)
+                        {
+                            start = temp;
+                            if (i < numbers.Length - 1)                                
+                                if (numbers[i] + 1 == numbers[i + 1])
+                                    continue;                                
+                                else
+                                    temp = numbers[i + 1];
+                            end = numbers[i];
+                            if (start == end)
+                                result += "," + start.ToString();
+                            else
+                                result += "," + start.ToString() + " - " + end.ToString();
+                        }
+                    }
+                    if (result.StartsWith(",")) { result=result.Substring(1, result.Length - 1); }
+                    return result;
+                }
+                else { return stext; }
+            }
+            catch { return stext; }
+        }
+
+        public static string GetReferenecesbyArea()
+        {
+            try
+            {
+                List<int> refnumbers = new List<int>();
+                string rfpattern = @"^([ \\t]+)?([\\(\\[])?(([0-9]+)([ .\\t]+)?)+([\\(\\]])?";
+                Regex regex = new Regex(rfpattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+                Word.Range refrange = GetReferenceRangebyBook();                
+                if (refrange != null)
+                {
+                    refrange.ListFormat.ConvertNumbersToText();
+                    foreach (Word.Paragraph opara in refrange.Paragraphs)
+                    {
+                        string wholereftext = opara.Range.Text;
+                        if (regex.IsMatch(wholereftext))
+                        {
+                            string rfnumber = regex.Matches(wholereftext)[0].Value;
+                            rfnumber = rfnumber.Replace("[", "");
+                            rfnumber = rfnumber.Replace("]", "");
+                            rfnumber = rfnumber.Replace("(", "");
+                            rfnumber = rfnumber.Replace(")", "");
+                            rfnumber = rfnumber.Replace(".", "");
+                            rfnumber = rfnumber.Replace(" ", "");
+                            rfnumber = rfnumber.Replace("\t", "");
+                            int.TryParse(rfnumber, out int rfnum);
+                            if (rfnum > 0) { refnumbers.Add(rfnum); }
+                        }
+                    }
+                    return GetEllidedNumbers(string.Join(",", refnumbers));
+                }
+                return null;
+            }
+            catch { return null; }
+        }
+
+        public static List<int> GetCitationsbyRange(string srngtext)
+        {
+            try
+            {
+                List<int> incitations = new List<int>();
+                string stext = srngtext;
+                stext = stext.Replace("\u2013", "-");
+                stext = stext.Replace("\u2014", "-");
+                stext = stext.Replace(", ", ",");
+                stext = stext.Replace("; ", ",");
+                stext = stext.Replace(" ", ",");
+                stext = stext.Replace(",,", ",");
+                stext = stext.Replace("(", "");
+                stext = stext.Replace(")", "");
+                stext = stext.Replace("[", "");
+                stext = stext.Replace("]", "");
+                stext = stext.Replace(".", "");
+                foreach (string s in stext.Split(new char[] { ',' }))
+                {
+                    if (s.Contains("-"))
+                    {
+                        string[] ints = s.Split(new char[] { '-' });
+                        if (ints.Length == 2)
+                        {
+                            int.TryParse(ints[0], out int num1);
+                            int.TryParse(ints[1], out int num2);
+                            if (num2 >= num1)
+                            {
+                                for (int i = num1; i <= num2; i++)
+                                {
+                                    incitations.Add(i);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int.TryParse(s, out int c);
+                        if (c > 0) { incitations.Add(c); }
+                    }
+                }
+                return incitations;
+            }
+            catch { return null; }
+        }
+
     }
 }

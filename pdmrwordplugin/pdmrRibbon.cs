@@ -73,6 +73,9 @@ namespace pdmrwordplugin
                 case "btnprocessref":
                     AddReferenceUI("Reference");
                     break;
+                case "btnstylexref":
+                    AddReferenceUI("stylexref");
+                    break;
                 default:
                     break;
             }            
@@ -87,7 +90,7 @@ namespace pdmrwordplugin
         {
             Microsoft.Office.Tools.CustomTaskPane objPane;
             switch (wtype)
-            {
+            {                
                 case "Reference":
                     Usrtaskpane oCtrl = new Usrtaskpane();                    
                     objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl, ClsGlobals.PROJ_TITLE);
@@ -97,12 +100,18 @@ namespace pdmrwordplugin
                     break;
                 case "Xref":
                     if (!ClsCommonUtils.CreateXrefStyles()) { 
-
                         return; }
                     Globals.ThisAddIn.Application.ActiveDocument.ActiveWindow.View.Type = Microsoft.Office.Interop.Word.WdViewType.wdNormalView;
                     Globals.ThisAddIn.Application.ActiveDocument.ActiveWindow.View.RevisionsView = Microsoft.Office.Interop.Word.WdRevisionsView.wdRevisionsViewFinal;
                     UsrXrefTaskpane oCtrl1 = new UsrXrefTaskpane();                    
                     objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl1, ClsGlobals.PROJ_TITLE);
+                    objPane.Control.Dock = System.Windows.Forms.DockStyle.Fill;
+                    objPane.Width = 400;
+                    objPane.Visible = true;
+                    break;
+                case "stylexref":
+                    UsrStyleXrefs oCtrl2 = new UsrStyleXrefs();
+                    objPane = Globals.ThisAddIn.CustomTaskPanes.Add(oCtrl2, ClsGlobals.PROJ_TITLE);
                     objPane.Control.Dock = System.Windows.Forms.DockStyle.Fill;
                     objPane.Width = 400;
                     objPane.Visible = true;

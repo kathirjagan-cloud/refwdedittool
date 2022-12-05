@@ -189,6 +189,9 @@
   <ItemGroup>
     <Compile Include="ClsGlobals.cs" />
     <Compile Include="ClsMessages.cs" />
+    <Compile Include="Controls\UsrCitationsStyle.xaml.cs">
+      <DependentUpon>UsrCitationsStyle.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\XrefCtrl.xaml.cs">
       <DependentUpon>XrefCtrl.xaml</DependentUpon>
     </Compile>
@@ -207,6 +210,12 @@
     <Compile Include="RelayCommand.cs" />
     <Compile Include="RichTextBoxHelper.cs" />
     <Compile Include="StringExtensionMethods.cs" />
+    <Compile Include="Taskpane\UsrStyleXrefs.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Taskpane\UsrStyleXrefs.Designer.cs">
+      <DependentUpon>UsrStyleXrefs.cs</DependentUpon>
+    </Compile>
     <Compile Include="Taskpane\Usrtaskpane.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -234,6 +243,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Taskpane\UsrStyleXrefs.resx">
+      <DependentUpon>UsrStyleXrefs.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Taskpane\Usrtaskpane.resx">
       <DependentUpon>Usrtaskpane.cs</DependentUpon>
     </EmbeddedResource>
@@ -264,6 +276,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="Controls\ReferenceCtrl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\UsrCitationsStyle.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
