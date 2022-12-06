@@ -34,6 +34,232 @@ namespace pdmrwordplugin.Functions
             return returnObject;
         }
 
+        public static string ShowDifferences(string beforeStr, string afterStr, bool CSensitive)
+        {
+            int m;
+            int n;
+            int cost;
+            int delta;
+            int LDval;
+            int Cnt;
+            int cur_i = 0;
+            int cur_d = 0;
+            int cur;
+            bool span;
+            string b_i;
+            string a_j;
+            string direction;
+            string astr;
+            string bstr;
+            int I;
+            int J;
+
+            beforeStr = beforeStr.Trim();
+            afterStr = afterStr.Trim();
+            bstr = beforeStr;
+            astr = afterStr;
+            if (CSensitive)
+            {
+                bstr = bstr.ToLower();
+                astr = astr.ToLower();
+            }
+            n = beforeStr.Length; m = afterStr.Length;
+            if (n == 0 || m == 0)
+            {
+                return "";
+            }
+            int[,] d = new int[n + 1, m + 1];
+            for (I = 0; I < n; I++)
+            {
+                d[I, 0] = I;
+            }
+            for (J = 0; J < m; J++)
+            {
+                d[0, J] = J;
+            }
+            for (I = 1; I <= n; I++)
+            {
+                b_i = bstr.Substring(I - 1, 1);
+                for (J = 1; J <= m; J++)
+                {
+                    a_j = astr.Substring(J - 1, 1);
+                    if (b_i == a_j)
+                    {
+                        cost = 0;
+                    }
+                    else { cost = 1; }
+                    d[I, J] = MinimumVal(d[I - 1, J] + 1, d[I, J - 1] + 1, d[I - 1, J - 1] + cost);
+                }
+            }
+            LDval = d[n, m];
+
+            string[,] c = new string[n + m + 1, 2];
+            I = n;
+            J = m;
+            string LD = "";
+            Cnt = 0;
+
+            while (I != 0 && J != 0)
+            {
+                if (I == 0)
+                {
+                    direction = "u";
+                    delta = LDval - d[I, J - 1];
+                }
+                else if (J == 0)
+                {
+                    direction = "l";
+                    delta = LDval - d[I - 1, J];
+                }
+                else
+                {
+                    direction = MinimumPath(d[I - 1, J - 1], d[I, J - 1], d[I - 1, J]);
+                    delta = LDval - MinimumVal(d[I - 1, J - 1], d[I, J - 1], d[I - 1, J]);
+                }
+                if (delta > 0)
+                {
+                    switch (direction)
+                    {
+                        case "ul":
+                            c[Cnt, 0] = afterStr.Substring(J - 1, 1);
+                            c[Cnt, 1] = "i";
+                            c[Cnt + 1, 0] = beforeStr.Substring(I - 1, 1);
+                            c[Cnt + 1, 1] = "d";
+                            I--;
+                            J--; Cnt += 2;
+                            break;
+                        case "u":
+                            c[Cnt, 0] = afterStr.Substring(J - 1, 1);
+                            c[Cnt, 1] = "i";
+                            J--; Cnt++;
+                            break;
+                        case "l":
+                            c[Cnt, 0] = beforeStr.Substring(I - 1, 1);
+                            c[Cnt, 1] = "d";
+                            I--; Cnt++;
+                            break;
+                    }
+                    LDval -= delta;
+                }
+                else
+                {
+                    switch (direction)
+                    {
+                        case "ul":
+                            c[Cnt, 0] = beforeStr.Substring(I - 1, 1);
+                            c[Cnt, 1] = "s";
+                            I--;
+                            J--; Cnt++;
+                            break;
+                        case "u":
+                            c[Cnt, 0] = beforeStr.Substring(I - 1, 1);
+                            c[Cnt, 1] = "s";
+                            J--; Cnt++;
+                            break;
+                        case "l":
+                            c[Cnt, 0] = beforeStr.Substring(I - 1, 1);
+                            c[Cnt, 1] = "s";
+                            I--; Cnt++;
+                            break;
+                    }
+                }
+            }
+
+            string[,] b = new string[Cnt - 1 + 2, 2];
+            span = false; cur = 0;
+            for (I = Cnt - 1; I >= 0; I--)
+            {
+                switch (c[I, 1])
+                {
+                    case "s":
+                        span = false;
+                        break;
+                    case "i":
+                        if (!span)
+                        {
+                            cur_i = cur;
+                            cur_d = cur + 1;
+                        }
+                        span = true;
+                        break;
+                    case "d":
+                        if (!span)
+                        {
+                            cur_d = cur;
+                            cur_i = cur + 1;
+                        }
+                        span = true;
+                        break;
+                }
+
+                if (!span)
+                {
+                    b[cur, 0] = c[I, 0];
+                    b[cur, 1] = c[I, 1];
+                }
+                else
+                {
+                    if (c[I, 1] == "d")
+                    {
+                        b[cur_d, 0] = b[cur_d, 0] + c[I, 0];
+                        b[cur_d, 1] = "d";
+                    }
+                    else if (c[I, 1] == "i")
+                    {
+                        b[cur_i, 0] = b[cur_i, 0] + c[I, 0];
+                        b[cur_i, 1] = "i";
+                    }
+                }
+                cur += 1;
+            }
+
+            for (I = 0; I <= Cnt - 1; I++)
+            {
+                b_i = b[I, 0];
+                if (b[I, 1] == "d")
+                {
+                    b_i = "<del>" + b_i + "</del>";
+                }
+                else if (b[I, 1] == "i")
+                {
+                    b_i = "<ins>" + b_i + "</ins>";
+                }
+                LD += b_i;
+            }
+            return LD;
+        }
+
+        static string MinimumPath(int a, int b, int c)
+        {
+            int mi = a;
+            string miV = "ul";
+            if (b < mi)
+            {
+                mi = b;
+                miV = "u";
+            }
+            if (c < mi)
+            {
+                mi = c;
+                miV = "l";
+            }
+            return miV;
+        }
+
+        static int MinimumVal(int a, int b, int c)
+        {
+            int mi = a;
+            if (b < mi)
+            {
+                mi = b;
+            }
+            if (c < mi)
+            {
+                mi = c;
+            }
+            return mi;
+        }
+
         public static double CalculateSimilarity(string source, string target)
         {
             if ((source == null) || (target == null)) return 0.0;

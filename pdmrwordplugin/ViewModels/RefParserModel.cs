@@ -474,7 +474,7 @@ namespace pdmrwordplugin.ViewModels
                     {
                         orng = Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[orngBK].Range.Duplicate;
                     }
-                    orng.Text = SelReference.ReftextHtml;
+                    orng.Text = SelReference.RefStrucText;
                 }
             }
             catch

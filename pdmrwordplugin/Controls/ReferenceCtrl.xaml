@@ -180,7 +180,7 @@
                             </StackPanel>
                         </Button>-->
                         <Button Grid.Column="2" Width="80" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" Padding="0"
-                                IsEnabled="{Binding ShowActionButton}" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12" >
+                                IsEnabled="{Binding ShowActionButton}" materialDesign:ShadowAssist.ShadowDepth="Depth0" FontSize="12" Command="{Binding ApplyStyledRefs}">
                             <StackPanel Orientation="Horizontal" Width="60">
                                 <materialDesign:PackIcon Kind="TickCircleOutline" VerticalAlignment="Center" Padding="0" Margin="0"/>
                                 <TextBlock Text="  Apply" VerticalAlignment="Center"/>
