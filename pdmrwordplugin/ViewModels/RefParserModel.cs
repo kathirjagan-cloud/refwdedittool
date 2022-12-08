@@ -21,6 +21,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using pdmrwordplugin.Functions;
 
 namespace pdmrwordplugin.ViewModels
 {
@@ -283,6 +284,9 @@ namespace pdmrwordplugin.ViewModels
                     elem = xDoc.XPathSelectElement(".//MedlineJournalInfo/MedlineTA");
                     if (elem != null) { classObject.containertitleabbrv = elem.Value; }
 
+                    elem = xDoc.XPathSelectElement(".//Journal/ISOAbbreviation");
+                    if (elem != null) { classObject.containertitleabbrv = elem.Value; }
+
                     elem = xDoc.XPathSelectElement(".//MedlinePgn");
                     if (elem != null) { classObject.pages = elem.Value; }
 
@@ -309,7 +313,7 @@ namespace pdmrwordplugin.ViewModels
                 string refpattern = refstyle.pattern;
                 string authorpattern = GetAuthorsFormat(refstyle, pubmedobj.Authors.Count);
                 MatchCollection lastmatches = Regex.Matches(authorpattern, @"\[LastName\]");
-                MatchCollection inimatches = Regex.Matches(authorpattern, @"\[Initials\]");
+                MatchCollection inimatches = Regex.Matches(authorpattern, @"\[Initials\]");                
                 if (lastmatches != null && lastmatches.Count > 0)
                 {
                     for (int i = 0; i < lastmatches.Count; i++)
@@ -326,10 +330,19 @@ namespace pdmrwordplugin.ViewModels
                 }
                 refpattern = refpattern.Replace("[Author]", authorpattern);
                 //replace author "[Author] [ArticleTitle]. [Journal] [Date];[Volume]([Issue]):[Page]"
+
+
                 if (refstyle.journal.abbreviation)
                 {
-                    if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + pubmedobj.containertitleabbrv + "</Italic>"); }
-                    else { refpattern = refpattern.Replace("[Journal]", pubmedobj.containertitleabbrv); }
+
+                    string strJtitle = pubmedobj.containertitleabbrv;
+                    if (!refstyle.journal.useperiod) { strJtitle = strJtitle.Replace(".", ""); }
+                    else
+                    {
+
+                    }
+                    if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + strJtitle + "</Italic>"); }
+                    else { refpattern = refpattern.Replace("[Journal]", strJtitle); }
                 }
                 else
                 {
@@ -474,14 +487,38 @@ namespace pdmrwordplugin.ViewModels
                     {
                         orng = Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[orngBK].Range.Duplicate;
                     }
-                    orng.Text = SelReference.RefStrucText;
+                    string scomptxt = ClsCommonUtils.GetCleanPubmedTxt(SelReference.RefStrucText);                    
+                    Globals.ThisAddIn.Application.ScreenUpdating = false;
+                    #region Using Normal way
+                    //ClsCommonUtils.TRACK_OFF();
+                    //orng.Text = ClsCommonUtils.ShowDifferences(SelReference.Reftext, scomptxt, true);
+                    //ClsCommonUtils.TRACK_ON();
+                    //Globals.ThisAddIn.Application.ActiveWindow.View.RevisionsView = Word.WdRevisionsView.wdRevisionsViewFinal;
+                    //ClsCommonUtils.InsertwithTrack(orng.Duplicate);
+                    //ClsCommonUtils.TRACK_OFF();
+                    //ClsCommonUtils.ClearTagsinSelection(orng.Duplicate);
+                    //orng.Select();
+                    #endregion
+                    #region Using Word Compare
+                    ClsCommonUtils.TRACK_OFF();
+                    //string newcomptext = ClsCommonUtils.ShowDifferences(SelReference.Reftext, scomptxt, false);
+                    Word.Document cmpdoc = ClsCommonUtils.GetCompareRangeDoc(SelReference.Reftext, scomptxt);
+                    if (cmpdoc != null)
+                    {
+                        Word.Range cmprng = cmpdoc.Paragraphs[1].Range.Duplicate;
+                        cmprng.SetRange(cmprng.Start, cmprng.End - 1);
+                        orng.FormattedText = cmprng.Duplicate;
+                        cmpdoc.Close(Word.WdSaveOptions.wdDoNotSaveChanges);
+                    }
+                    #endregion
+                    Globals.ThisAddIn.Application.ScreenUpdating = true;
                 }
             }
             catch
             {
-
+                Globals.ThisAddIn.Application.ScreenUpdating = true;
             }
-        }
+        }        
 
         public void DoProcessReferences()
         {
@@ -504,12 +541,20 @@ namespace pdmrwordplugin.ViewModels
                         if (defaultmodl != null)
                         {
                             if (Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(defaultmodl.Refbookmark))
-                            {
+                            {                                
                                 Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[defaultmodl.Refbookmark].Range.Select();
                                 Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(Globals.ThisAddIn.Application.Selection.Range);
                             }
                         }
                         SelReference = defaultmodl;
+                        if (defaultmodl != null)
+                        {
+                            if (Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Exists(defaultmodl.Refbookmark))
+                            {
+                                Globals.ThisAddIn.Application.ActiveDocument.Bookmarks[defaultmodl.Refbookmark].Range.Select();
+                                Globals.ThisAddIn.Application.ActiveWindow.ScrollIntoView(Globals.ThisAddIn.Application.Selection.Range);
+                            }
+                        }
                     }
                 });
             }
@@ -531,6 +576,7 @@ namespace pdmrwordplugin.ViewModels
             ApplyStyledRefs = new RelayCommand(m => FormatReferenceinSel());
             ProcessReferences = new ObservableCollection<ReferenceModel>();
             StartRefProcess = new RelayCommand(m => DoProcessReferences());
+            if (_docreferences == null) { _docreferences = new List<ReferenceModel>(); }
             docreferences = new List<ReferenceModel>(_docreferences);
             FirstRunRef = true;
             ShowRefProc = false;

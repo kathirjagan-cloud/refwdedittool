@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using Word = Microsoft.Office.Interop.Word;
@@ -335,7 +336,7 @@ namespace pdmrwordplugin.Functions
                 Word.Range orng = Globals.ThisAddIn.Application.Selection.Range.Duplicate;
                 if (orng.Paragraphs.Count <= 5)
                 {
-                    MessageBox.Show(ClsMessages.REF_MESSAGE_4, ClsGlobals.PROJ_TITLE);
+                    System.Windows.Forms.MessageBox.Show(ClsMessages.REF_MESSAGE_4, ClsGlobals.PROJ_TITLE);
                 }
                 bool revstateindoc = Globals.ThisAddIn.Application.ActiveDocument.TrackRevisions;
                 ClsCommonUtils.TRACK_OFF();
@@ -343,7 +344,7 @@ namespace pdmrwordplugin.Functions
                 Globals.ThisAddIn.Application.ActiveDocument.TrackRevisions = revstateindoc;
                 Globals.ThisAddIn.Application.ActiveDocument.Bookmarks.Add(ClsGlobals.REF_BOOK_NAME, orng.Duplicate);
             }
-            catch { MessageBox.Show(ClsMessages.REF_MESSAGE_3, ClsGlobals.PROJ_TITLE); }
+            catch { System.Windows.Forms.MessageBox.Show(ClsMessages.REF_MESSAGE_3, ClsGlobals.PROJ_TITLE); }
         }
 
         public static Word.Range GetReferenceRangebyBook()
@@ -358,7 +359,7 @@ namespace pdmrwordplugin.Functions
                 }
                 else
                 {
-                    MessageBox.Show(ClsMessages.REF_MESSAGE_5, ClsGlobals.PROJ_TITLE);
+                    System.Windows.Forms.MessageBox.Show(ClsMessages.REF_MESSAGE_5, ClsGlobals.PROJ_TITLE);
                 }
                 return null;
             }
@@ -483,7 +484,8 @@ namespace pdmrwordplugin.Functions
             {
                 for(int i= bkdoc.Bookmarks.Count; i >= 1; i--)
                 {
-                    bkdoc.Bookmarks[i].Delete();
+                    if (bkdoc.Bookmarks[i].Name.Contains("REF_"))
+                        bkdoc.Bookmarks[i].Delete();
                 }
             }
             catch { }
@@ -553,6 +555,102 @@ namespace pdmrwordplugin.Functions
                 else { return stext; }
             }
             catch { return stext; }
+        }
+
+        public static void ClearTagsinSelection(Word.Range cRng)
+        {
+            try
+            {
+                Word.Range tmprng = null;
+                string[] tags = new string[] { "<del>", "</del>", "<ins>", "</ins>" };
+                foreach(string tag in tags)
+                {
+                    tmprng = cRng.Duplicate;
+                    tmprng.Find.ClearFormatting();
+                    tmprng.Find.Text = tag;
+                    while(tmprng.Find.Execute())
+                    {
+                        tmprng.Text = "";
+                        tmprng.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+                    }
+                }
+                
+            }
+            catch { }
+        }
+
+
+        public static void InsertwithTrack(Word.Range tRng)        
+        {
+            try
+            {
+                Word.Range tmprng = tRng.Duplicate;
+                string tmptxt = tmprng.Text;
+                string orgpattern = @"\<$$TAG$$\>([\s\S]*?)\<\/$$TAG$$\>";
+                string pattern = "";
+                Word.Range prvsrng = null;
+                for (int i = 1; i <= 2; i++)
+                {
+                    pattern = orgpattern;
+                    if (i == 1){pattern = pattern.Replace("$$TAG$$", "del");}
+                    else { pattern = pattern.Replace("$$TAG$$", "ins"); }
+                    if (Regex.IsMatch(tmptxt, pattern))
+                    {
+                        foreach(System.Text.RegularExpressions.Match match in Regex.Matches(tmptxt, pattern))
+                        {
+                            tRng.Select();
+                            Globals.ThisAddIn.Application.Selection.Find.ClearFormatting();
+                            Globals.ThisAddIn.Application.Selection.Find.Text = match.Value;
+                            while(Globals.ThisAddIn.Application.Selection.Find.Execute())
+                            {
+                                if (prvsrng == null) { prvsrng = Globals.ThisAddIn.Application.Selection.Range.Duplicate; }
+                                else
+                                {
+                                    if (Globals.ThisAddIn.Application.Selection.Range.InRange(prvsrng)) { break; }
+                                }
+                                if (i == 1) 
+                                { 
+                                    Globals.ThisAddIn.Application.Selection.Range.Text=""; 
+                                }
+                                else {
+                                    string clninstxt = match.Value;                                    
+                                    Globals.ThisAddIn.Application.Selection.Range.Text = clninstxt; 
+                                }
+                                Globals.ThisAddIn.Application.Selection.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+
+        public static Word.Document GetCompareRangeDoc(string scomp1txt, string scomp2txt)
+        {
+            Word.Document doc1 = null;
+            Word.Document doc2 = null;
+            try
+            {
+                string flname1 = System.IO.Path.GetTempPath() + "comp1.docx";
+                string flname2 = System.IO.Path.GetTempPath() + "comp2.docx";
+                doc1 = Globals.ThisAddIn.Application.Documents.Add(Visible: false);
+                doc1.Range().Paragraphs[1].Range.Text = scomp1txt;
+                doc1.SaveAs2(flname1,Word.WdSaveFormat.wdFormatXMLDocument);                
+                doc2 = Globals.ThisAddIn.Application.Documents.Add(Visible: false);
+                doc2.Range().Paragraphs[1].Range.Text = scomp2txt;
+                doc2.SaveAs2(flname2, Word.WdSaveFormat.wdFormatXMLDocument);
+                Word.Document cdoc = Globals.ThisAddIn.Application.CompareDocuments(doc1, doc2, Granularity: Word.WdGranularity.wdGranularityCharLevel);
+                cdoc.ActiveWindow.Visible = false;
+                doc1.Close(); doc2.Close();
+                return cdoc;
+            }
+            catch 
+            {
+                if (doc1 != null) { doc1.Close(); }
+                if (doc2 != null) { doc2.Close(); }
+                return null; 
+            }
         }
 
         public static string GetReferenecesbyArea()
@@ -634,6 +732,25 @@ namespace pdmrwordplugin.Functions
                 return incitations;
             }
             catch { return null; }
+        }
+
+        public static string GetCleanPubmedTxt(string spubmedtxt)
+        {
+            try
+            {
+                string stmp = spubmedtxt;
+                MatchCollection omatches = Regex.Matches(stmp, @"\<[^<>]{1,}\>");
+                if (omatches != null)
+                {
+                    foreach (System.Text.RegularExpressions.Match omatch in omatches)
+                    {
+                        if (omatch.Value.Contains("FlowDocument") ||
+                            omatch.Value.Contains("Paragraph")) { stmp = stmp.Replace(omatch.Value, ""); }
+                    }
+                }
+                return stmp;
+            }
+            catch { return spubmedtxt; }
         }
 
     }

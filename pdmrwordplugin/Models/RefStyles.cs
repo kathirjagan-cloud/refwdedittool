@@ -127,7 +127,7 @@ namespace pdmrwordplugin.Models
 
         private bool abbreviationField;
 
-        private object useperiodField;
+        private bool useperiodField;
 
         private bool italicField;
 
@@ -145,7 +145,7 @@ namespace pdmrwordplugin.Models
         }
 
         /// <remarks/>
-        public object useperiod
+        public bool useperiod
         {
             get
             {
