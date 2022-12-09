@@ -51,6 +51,11 @@ namespace pdmrwordplugin.Models
 
         private string nameField;
 
+        private VolumeStyle volumestylefield;
+        private IssueStyle issuestylefield;
+        private PageStyle pagestylefield;
+        private DateStyle datestylefield;
+
         /// <remarks/>
         public string pattern
         {
@@ -62,7 +67,7 @@ namespace pdmrwordplugin.Models
             {
                 this.patternField = value;
             }
-        }
+        }        
 
         /// <remarks/>
         public referencestylesStyleJournal journal
@@ -76,6 +81,30 @@ namespace pdmrwordplugin.Models
                 this.journalField = value;
             }
         }
+
+        public DateStyle date
+        {
+            get { return this.datestylefield; }
+            set { this.datestylefield = value; }
+        }
+
+        public VolumeStyle volume
+        {
+            get { return this.volumestylefield; }
+            set { this.volumestylefield = value; }
+        }
+
+        public IssueStyle issue
+        {
+            get { return this.issuestylefield; }
+            set { this.issuestylefield = value; }
+        }
+
+        public PageStyle page
+        {
+            get { return this.pagestylefield; }
+            set { this.pagestylefield = value; }
+        }        
 
         /// <remarks/>
         public string authorpattern
@@ -127,7 +156,7 @@ namespace pdmrwordplugin.Models
 
         private bool abbreviationField;
 
-        private bool useperiodField;
+        private object useperiodField;
 
         private bool italicField;
 
@@ -145,7 +174,7 @@ namespace pdmrwordplugin.Models
         }
 
         /// <remarks/>
-        public bool useperiod
+        public object useperiod
         {
             get
             {
@@ -170,6 +199,90 @@ namespace pdmrwordplugin.Models
             }
         }
     }
+
+
+    [System.SerializableAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true)]
+    public partial class VolumeStyle
+    {
+        private bool boldfield;
+        private bool Italicfield;
+
+        public bool bold
+        {
+            get { return this.boldfield; }
+            set { this.boldfield = value; }
+        }
+
+        public bool italic
+        {
+            get { return this.Italicfield; }
+            set { this.Italicfield = value; }
+        }
+    }
+
+    public partial class IssueStyle
+    {
+        private bool boldfield;
+        private bool Italicfield;
+
+        public bool bold
+        {
+            get { return this.boldfield; }
+            set { this.boldfield = value; }
+        }
+
+        public bool italic
+        {
+            get { return this.Italicfield; }
+            set { this.Italicfield = value; }
+        }
+    }
+
+    public partial class DateStyle
+    {
+        private bool boldfield;
+        private bool Italicfield;
+
+        public bool bold
+        {
+            get { return this.boldfield; }
+            set { this.boldfield = value; }
+        }
+
+        public bool italic
+        {
+            get { return this.Italicfield; }
+            set { this.Italicfield = value; }
+        }
+    }
+
+    public partial class PageStyle
+    {
+        private bool ellifield;
+        private string seprfield;
+        private string removefield;
+
+        public bool ellision
+        {
+            get { return this.ellifield; }
+            set { this.ellifield = value; }
+        }
+
+        public string separator
+        {
+            get { return this.seprfield; }
+            set { this.seprfield = value; }
+        }
+
+        public string omitchars
+        {
+            get { return this.removefield; }
+            set { this.removefield = value; }
+        }
+    }
+
 
     /// <remarks/>
     [System.SerializableAttribute()]

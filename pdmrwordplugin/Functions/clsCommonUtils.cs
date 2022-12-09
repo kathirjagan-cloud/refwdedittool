@@ -28,9 +28,9 @@ namespace pdmrwordplugin.Functions
                 XmlSerializer serializer = new XmlSerializer(typeof(T));
                 returnObject = (T)serializer.Deserialize(xmlStream);
             }
-            catch
+            catch(Exception ex)
             {
-
+                string s = ex.Message;
             }
             return returnObject;
         }

@@ -22,6 +22,9 @@ using System.Xml.XPath;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
 using pdmrwordplugin.Functions;
+using MaterialDesignColors.Recommended;
+using System.Linq.Expressions;
+using System.IO.Packaging;
 
 namespace pdmrwordplugin.ViewModels
 {
@@ -328,35 +331,47 @@ namespace pdmrwordplugin.ViewModels
                         authorpattern = StringExtensionMethods.ReplaceFirst(authorpattern, "[Initials]", pubmedobj.Authors[i].given);
                     }
                 }
+
                 refpattern = refpattern.Replace("[Author]", authorpattern);
                 //replace author "[Author] [ArticleTitle]. [Journal] [Date];[Volume]([Issue]):[Page]"
 
-
                 if (refstyle.journal.abbreviation)
                 {
-
+                    string tmpjtitle = "";
                     string strJtitle = pubmedobj.containertitleabbrv;
-                    if (!refstyle.journal.useperiod) { strJtitle = strJtitle.Replace(".", ""); }
+                    bool.TryParse(((System.Xml.XmlNode[])refstyle.journal.useperiod)[0].Value, out bool blnuseperiod);
+                    if (!blnuseperiod) { strJtitle = strJtitle.Replace(".", ""); }
                     else
                     {
-
+                        string orgjrnltxt = "**" + pubmedobj.containertitle.Replace(" ","**") + "**";
+                        if (!strJtitle.Contains("."))
+                        {
+                            foreach (string s in strJtitle.Split(' '))
+                            {
+                                if (!orgjrnltxt.Contains("**" + s + "**")) { tmpjtitle = tmpjtitle + s + ". "; }
+                                else { tmpjtitle = tmpjtitle + s + " "; }
+                            }
+                        }
+                        if (!string.IsNullOrEmpty(tmpjtitle)) { strJtitle = tmpjtitle; }
                     }
-                    if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + strJtitle + "</Italic>"); }
-                    else { refpattern = refpattern.Replace("[Journal]", strJtitle); }
+                    //if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + strJtitle + "</Italic>"); }
+                    //else { refpattern = refpattern.Replace("[Journal]", strJtitle); }
+                    refpattern = refpattern.Replace("[Journal]", GetFormattingbyStyle(false, refstyle.journal.italic, strJtitle));
                 }
                 else
                 {
-                    if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + pubmedobj.containertitle + "</Italic>"); }
-                    else { refpattern = refpattern.Replace("[Journal]", pubmedobj.containertitle); }
+                    //if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + pubmedobj.containertitle + "</Italic>"); }
+                    //else { refpattern = refpattern.Replace("[Journal]", pubmedobj.containertitle); }
+                    refpattern = refpattern.Replace("[Journal]", GetFormattingbyStyle(false, refstyle.journal.italic, pubmedobj.containertitle));
                 }
                 //replace journal title
                 refpattern = refpattern.Replace("[ArticleTitle]", pubmedobj.title);
                 //replace article title
-                refpattern = refpattern.Replace("[Date]", pubmedobj.date);
+                refpattern = refpattern.Replace("[Date]", GetFormattingbyStyle(refstyle.date.bold, refstyle.date.italic, pubmedobj.date));
                 //replace date
-                refpattern = refpattern.Replace("[Volume]", pubmedobj.volume);
+                refpattern = refpattern.Replace("[Volume]", GetFormattingbyStyle(refstyle.volume.bold, refstyle.volume.italic, pubmedobj.volume));
                 //replace issue
-                refpattern = refpattern.Replace("[Issue]", pubmedobj.issue);
+                refpattern = refpattern.Replace("[Issue]", GetFormattingbyStyle(refstyle.issue.bold, refstyle.issue.italic, pubmedobj.issue));
                 //replace volume
                 refpattern = refpattern.Replace("[Page]", pubmedobj.pages);
                 //replace pagination
@@ -369,6 +384,39 @@ namespace pdmrwordplugin.ViewModels
             }
         }
 
+        private static string GetEllidedNumberbyStyle(bool toEllide, string eSepr, string removechar, string strpage)
+        {
+            try
+            {
+                string frstnum = "";string sndnum = "";
+                string tmppage = strpage;
+                tmppage = tmppage.Replace("–", "-");
+                if (tmppage.Contains("-"))
+                {
+                    string[] numspl = tmppage.Split('-');
+                    frstnum = numspl[0]; sndnum = numspl[1];
+                    if (!toEllide)
+                    {                       
+
+                    }
+                }
+                return tmppage;
+            }
+            catch { return strpage; }
+        }
+
+        private static string GetFormattingbyStyle(bool blnbold, bool blnitalic, string val)
+        {
+            try
+            {
+                if(blnbold && blnitalic) { val = "<Bold><Italic>" + val + "<Italic></Bold>"; }
+                if (blnbold) { val = "<Bold>" + val + "</Bold>"; }
+                if (blnitalic) { val = "<Italic>" + val + "</Italic>"; }
+                return val;
+            }
+            catch { return val; }
+        }
+
         private static string GetAuthorsFormat(referencestylesStyle arefstyle, int authorscount)
         {
             string authstr = arefstyle.authorpattern;
@@ -376,6 +424,7 @@ namespace pdmrwordplugin.ViewModels
             {
                 int maxcount = 0;
                 int count = 0;
+                string authorendsp = arefstyle.separators.end;
                 if (!string.IsNullOrEmpty(arefstyle.separators.maxcount))
                 {
                     maxcount = int.Parse(arefstyle.separators.maxcount);
@@ -390,7 +439,7 @@ namespace pdmrwordplugin.ViewModels
                 }
                 else if (maxcount > 0 && authorscount > maxcount && !string.IsNullOrEmpty(arefstyle.separators.etal))
                 {
-                    arefstyle.separators.end = arefstyle.separators.etal;
+                    authorendsp = arefstyle.separators.etal;
                 }
                 if (count == 2 && !string.IsNullOrEmpty(arefstyle.separators.twoauthor))
                 {
@@ -404,7 +453,7 @@ namespace pdmrwordplugin.ViewModels
                         if (string.IsNullOrEmpty(strtmp)) { strtmp = authstr; }
                         else { strtmp += arefstyle.separators.author + authstr; }
                     }
-                    authstr = strtmp + arefstyle.separators.end;
+                    authstr = strtmp + authorendsp;
                 }
                 return authstr;
             }
