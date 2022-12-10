@@ -207,7 +207,7 @@ namespace pdmrwordplugin.ViewModels
                 Showprogress = false;
                 if (!t.IsFaulted && t.Result != null)
                 {
-                    SelReference.RefStrucText = GetFormatTextPubmed(t.Result);
+                    SelReference.RefStrucText = GetFormatTextPubmed(t.Result, SelReference.Reftext);
                     SelReference.RefCompText = GetCompareText(SelReference.Reftext, SelReference.RefStrucText);
                     RaisePropertyChanged("SelReference");
                 }
@@ -304,7 +304,7 @@ namespace pdmrwordplugin.ViewModels
         }
 
 
-        private static string GetFormatTextPubmed(string xmlstr)
+        private static string GetFormatTextPubmed(string xmlstr, string refstext)
         {
             string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
             string flowdocend = "</FlowDocument>";
@@ -353,19 +353,18 @@ namespace pdmrwordplugin.ViewModels
                             }
                         }
                         if (!string.IsNullOrEmpty(tmpjtitle)) { strJtitle = tmpjtitle; }
-                    }
-                    //if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + strJtitle + "</Italic>"); }
-                    //else { refpattern = refpattern.Replace("[Journal]", strJtitle); }
+                    }                    
                     refpattern = refpattern.Replace("[Journal]", GetFormattingbyStyle(false, refstyle.journal.italic, strJtitle));
                 }
                 else
-                {
-                    //if (refstyle.journal.italic) { refpattern = refpattern.Replace("[Journal]", "<Italic>" + pubmedobj.containertitle + "</Italic>"); }
-                    //else { refpattern = refpattern.Replace("[Journal]", pubmedobj.containertitle); }
+                {                    
                     refpattern = refpattern.Replace("[Journal]", GetFormattingbyStyle(false, refstyle.journal.italic, pubmedobj.containertitle));
                 }
                 //replace journal title
-                refpattern = refpattern.Replace("[ArticleTitle]", pubmedobj.title);
+
+                string tmpatitle = pubmedobj.title;
+                if (tmpatitle.EndsWith(".")) { tmpatitle = tmpatitle.Substring(0, tmpatitle.Length - 1); }
+                refpattern = refpattern.Replace("[ArticleTitle]", tmpatitle);
                 //replace article title
                 refpattern = refpattern.Replace("[Date]", GetFormattingbyStyle(refstyle.date.bold, refstyle.date.italic, pubmedobj.date));
                 //replace date
@@ -373,10 +372,10 @@ namespace pdmrwordplugin.ViewModels
                 //replace issue
                 refpattern = refpattern.Replace("[Issue]", GetFormattingbyStyle(refstyle.issue.bold, refstyle.issue.italic, pubmedobj.issue));
                 //replace volume
-                refpattern = refpattern.Replace("[Page]", pubmedobj.pages);
+                refpattern = refpattern.Replace("[Page]", GetEllidedNumberbyStyle(refstyle.page.ellision, refstyle.page.separator, refstyle.page.omitchars, pubmedobj.pages));
                 //replace pagination
                 refpattern = refpattern.Replace("&", "&amp;");
-                return flowdocstart + "<Paragraph>" + refpattern + "</Paragraph>" + flowdocend;
+                return flowdocstart + "<Paragraph>" + GetReferenenumber(refstext) + refpattern + "</Paragraph>" + flowdocend;
             }
             catch
             {
@@ -384,23 +383,79 @@ namespace pdmrwordplugin.ViewModels
             }
         }
 
+
+        private static string GetReferenenumber(string strreftxt)
+        {
+            try
+            {
+                string result = "";
+                string rgxpattern = "^([ \\t]+)?([\\(\\[])?(([0-9]+)([ .\\t]+)?)+([\\)\\]])?";
+                if (Regex.IsMatch(strreftxt, rgxpattern))
+                {
+                    result = Regex.Match(strreftxt, rgxpattern).Value;
+                    result = result.Replace(" ", "");
+                    result = result.Replace("[", "");
+                    result = result.Replace("]", "");
+                    result = result.Replace("(", "");
+                    result = result.Replace(")", "");
+                    result = result.Replace(".", "");
+                    result = result.Replace("\t", "");
+                }
+                if (!string.IsNullOrEmpty(result)) { result += ". "; }
+                return result;
+            }
+            catch { return ""; }
+        }
+
         private static string GetEllidedNumberbyStyle(bool toEllide, string eSepr, string removechar, string strpage)
         {
             try
             {
-                string frstnum = "";string sndnum = "";
+                string frstnum = ""; string sndnum = "";
                 string tmppage = strpage;
-                tmppage = tmppage.Replace("–", "-");
+                string result = "";
+                tmppage = tmppage.Replace("\u2013", "-");
+                tmppage = tmppage.Replace("\u2014", "-");
                 if (tmppage.Contains("-"))
                 {
                     string[] numspl = tmppage.Split('-');
                     frstnum = numspl[0]; sndnum = numspl[1];
                     if (!toEllide)
-                    {                       
-
+                    {
+                        if (frstnum.Length > sndnum.Length)
+                        {
+                            sndnum = frstnum.Substring(0, frstnum.Length - sndnum.Length) + sndnum;
+                        }
+                        result = frstnum + eSepr + sndnum;
+                    }
+                    else
+                    {
+                        if (frstnum.Length > 1 && sndnum.Length > 1 && frstnum.Length == sndnum.Length)
+                        {
+                            int matched = 0;
+                            for (int k = 0; k < frstnum.Length; k++)
+                            {
+                                matched++;
+                                if (frstnum.Substring(k, 1) != sndnum.Substring(k, 1)) { break; }
+                            }
+                            if (frstnum.Length != sndnum.Substring(matched - 1, sndnum.Length - (matched - 1)).Length)
+                            {
+                                foreach (string sp in removechar.Split('|'))
+                                {
+                                    if (!string.IsNullOrEmpty(sp))
+                                        frstnum = frstnum.Replace(sp, "");
+                                }
+                            }
+                            result = frstnum + eSepr + sndnum.Substring(matched - 1, sndnum.Length - (matched - 1));
+                        }
+                        else
+                        {
+                            result = frstnum + eSepr + sndnum;
+                        }
                     }
                 }
-                return tmppage;
+                if (string.IsNullOrEmpty(result)) { result = strpage; }
+                return result;
             }
             catch { return strpage; }
         }

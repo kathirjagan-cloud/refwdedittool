@@ -734,6 +734,53 @@ namespace pdmrwordplugin.Functions
             catch { return null; }
         }
 
+        public static void ChangeTitleCase(Word.Range objrng)
+        {
+            try
+            {
+                List<Rangepositions> upperranges = new List<Rangepositions>();
+                List<Rangepositions> prepranges = new List<Rangepositions>();
+                var prepositions = new string[]
+                {
+                    "about","above","across","after","against","along","and","around","as","at","before","behind","below",
+                    "beneath","beside","between","beyond","by","during","for","from","in","into","of","on","onto","through",
+                    "to","toward","towards","upon","upto","versus","when","while","whilst","with","within","without","the","a","an"
+                };
+                if(objrng.Case== Word.WdCharacterCase.wdUpperCase) { objrng.Case = Word.WdCharacterCase.wdLowerCase; }
+                foreach(Word.Range wrdrng in objrng.Words)
+                {
+                    if(wrdrng.Case == Word.WdCharacterCase.wdUpperCase)
+                    {
+                        upperranges.Add(new Rangepositions() { start = wrdrng.Start, end = wrdrng.End, rangetext = wrdrng.Text }) ;
+                    }
+                    else if(prepositions.Contains(wrdrng.Text.ToLower()))
+                    {
+                        prepranges.Add(new Rangepositions() { start = wrdrng.Start, end = wrdrng.End, rangetext = wrdrng.Text });
+                    }
+                }
+                objrng.Case = Word.WdCharacterCase.wdTitleWord;
+                Word.Range tmprng = objrng.Duplicate;
+                foreach (Rangepositions pos in upperranges)
+                {
+                    tmprng.SetRange(pos.start, pos.end);
+                    if(tmprng.Text.ToLower() == pos.rangetext.ToLower())
+                    {
+                        tmprng.Case = Word.WdCharacterCase.wdUpperCase;
+                    }
+                }
+                tmprng = objrng.Duplicate;
+                foreach (Rangepositions pos in prepranges)
+                {
+                    tmprng.SetRange(pos.start, pos.end);
+                    if (tmprng.Text.ToLower() == pos.rangetext.ToLower())
+                    {
+                        tmprng.Case = Word.WdCharacterCase.wdLowerCase;
+                    }
+                }
+            }
+            catch { }
+        }
+
         public static string GetCleanPubmedTxt(string spubmedtxt)
         {
             try

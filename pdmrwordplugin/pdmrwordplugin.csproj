@@ -197,6 +197,7 @@
     </Compile>
     <Compile Include="Converters\BooleantoTextConverter.cs" />
     <Compile Include="Functions\clsCommonUtils.cs" />
+    <Compile Include="Models\Rangepositions.cs" />
     <Compile Include="Models\ReferenceModel.cs" />
     <Compile Include="Models\RefStyles.cs" />
     <Compile Include="Models\XrefModel.cs" />

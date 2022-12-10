@@ -55,6 +55,7 @@ namespace pdmrwordplugin.Models
         private IssueStyle issuestylefield;
         private PageStyle pagestylefield;
         private DateStyle datestylefield;
+        private ArticleStyle articlestylefield;
 
         /// <remarks/>
         public string pattern
@@ -68,6 +69,12 @@ namespace pdmrwordplugin.Models
                 this.patternField = value;
             }
         }        
+
+        public ArticleStyle articletitle
+        {
+            get { return this.articlestylefield; }
+            set { this.articlestylefield = value; }
+        }
 
         /// <remarks/>
         public referencestylesStyleJournal journal
@@ -283,6 +290,15 @@ namespace pdmrwordplugin.Models
         }
     }
 
+    public partial class ArticleStyle
+    {
+        private string casefield;
+        public string casevalue
+        {
+            get { return this.casefield; }
+            set { this.casefield = value; }
+        }
+    }
 
     /// <remarks/>
     [System.SerializableAttribute()]
