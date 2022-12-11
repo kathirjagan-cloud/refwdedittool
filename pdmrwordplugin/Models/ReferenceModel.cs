@@ -23,6 +23,7 @@ namespace pdmrwordplugin.Models
         public string ReftextHtml { get; set; }
         public string RefStrucText { get; set; }
         public string RefCompText { get; set; }
+        public string ReftaggedText { get; set; }
         public List<Author> Authors { get; set; }
         public string title { get; set; }
         public string volume { get; set; }

@@ -207,7 +207,10 @@ namespace pdmrwordplugin.ViewModels
                 Showprogress = false;
                 if (!t.IsFaulted && t.Result != null)
                 {
-                    SelReference.RefStrucText = GetFormatTextPubmed(t.Result, SelReference.Reftext);
+                    string taggedres= GetFormatTextPubmed(t.Result, SelReference.Reftext);
+                    SelReference.ReftaggedText = taggedres;
+                    if (!string.IsNullOrEmpty(taggedres)) { taggedres = taggedres.Replace("<title>", ""); taggedres = taggedres.Replace("</title>", ""); }
+                    SelReference.RefStrucText = taggedres; //GetFormatTextPubmed(t.Result, SelReference.Reftext);
                     SelReference.RefCompText = GetCompareText(SelReference.Reftext, SelReference.RefStrucText);
                     RaisePropertyChanged("SelReference");
                 }
@@ -364,7 +367,7 @@ namespace pdmrwordplugin.ViewModels
 
                 string tmpatitle = pubmedobj.title;
                 if (tmpatitle.EndsWith(".")) { tmpatitle = tmpatitle.Substring(0, tmpatitle.Length - 1); }
-                refpattern = refpattern.Replace("[ArticleTitle]", tmpatitle);
+                refpattern = refpattern.Replace("[ArticleTitle]", "<title>" + tmpatitle + "</title>");
                 //replace article title
                 refpattern = refpattern.Replace("[Date]", GetFormattingbyStyle(refstyle.date.bold, refstyle.date.italic, pubmedobj.date));
                 //replace date
@@ -603,18 +606,17 @@ namespace pdmrwordplugin.ViewModels
                     //ClsCommonUtils.ClearTagsinSelection(orng.Duplicate);
                     //orng.Select();
                     #endregion
-                    #region Using Word Compare
+                    
                     ClsCommonUtils.TRACK_OFF();
-                    //string newcomptext = ClsCommonUtils.ShowDifferences(SelReference.Reftext, scomptxt, false);
-                    Word.Document cmpdoc = ClsCommonUtils.GetCompareRangeDoc(SelReference.Reftext, scomptxt);
+                    Word.Document cmpdoc = ClsCommonUtils.GetCompareRangeDoc(SelReference.Reftext, scomptxt, SelReference.ReftaggedText);
                     if (cmpdoc != null)
                     {
                         Word.Range cmprng = cmpdoc.Paragraphs[1].Range.Duplicate;
                         cmprng.SetRange(cmprng.Start, cmprng.End - 1);
                         orng.FormattedText = cmprng.Duplicate;
                         cmpdoc.Close(Word.WdSaveOptions.wdDoNotSaveChanges);
-                    }
-                    #endregion
+                    }                    
+                    orng.Select();                    
                     Globals.ThisAddIn.Application.ScreenUpdating = true;
                 }
             }

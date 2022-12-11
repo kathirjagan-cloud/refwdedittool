@@ -626,7 +626,7 @@ namespace pdmrwordplugin.Functions
         }
 
 
-        public static Word.Document GetCompareRangeDoc(string scomp1txt, string scomp2txt)
+        public static Word.Document GetCompareRangeDoc(string scomp1txt, string scomp2txt, string tagtitletxt)
         {
             Word.Document doc1 = null;
             Word.Document doc2 = null;
@@ -639,8 +639,68 @@ namespace pdmrwordplugin.Functions
                 doc1.SaveAs2(flname1,Word.WdSaveFormat.wdFormatXMLDocument);                
                 doc2 = Globals.ThisAddIn.Application.Documents.Add(Visible: false);
                 doc2.Range().Paragraphs[1].Range.Text = scomp2txt;
+                //Do formatting
+                Word.Range range = doc2.Range().Duplicate;
+                range.Find.ClearFormatting();
+                range.Find.Text = @"\<Italic\>(?*)\<\/Italic\>";
+                range.Find.MatchWildcards = true;
+                while(range.Find.Execute())
+                {
+                    range.Font.Italic = 1;
+                    range.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+                }
+                range = doc2.Range().Duplicate;
+                range.Find.ClearFormatting();
+                range.Find.Text = @"\<Bold\>(?*)\<\/Bold\>";
+                range.Find.MatchWildcards = true;
+                while (range.Find.Execute())
+                {
+                    range.Font.Bold = 1;
+                    range.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+                }
+                range = doc2.Range().Duplicate;
+                range.Find.ClearFormatting();
+                range.Find.Text = @"\<[!>]*\>";
+                range.Find.MatchWildcards = true;
+                while (range.Find.Execute())
+                {
+                    if(range.Text == "<Bold>" || range.Text == "</Bold>" ||
+                        range.Text == "<Italic>" || range.Text == "</Italic>")
+                    {
+                        range.Text = "";
+                    }
+                    range.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+                }
+
+                string titletxt = "";
+                if(Regex.IsMatch(tagtitletxt, @"<title>[\s\S]*</title>"))
+                {
+                    titletxt = Regex.Match(tagtitletxt, @"<title>[\s\S]*</title>").Value;
+                    titletxt = titletxt.Replace("<title>", "");
+                    titletxt = titletxt.Replace("</title>", "");
+                }
+
+                if (!string.IsNullOrEmpty(titletxt))
+                {
+                    referencestylesStyle rstyle = ClsGlobals.gReferencestyles.style.FirstOrDefault();
+                    if(rstyle.articletitle.casevalue=="title" || rstyle.articletitle.casevalue == "sentence")
+                    {
+                        range = doc2.Range().Duplicate;
+                        range.Find.ClearFormatting();
+                        range.Find.Text = titletxt;                        
+                        while (range.Find.Execute())
+                        {
+                            if (rstyle.articletitle.casevalue == "title")
+                                ClsCommonUtils.ChangeTitleCase(range);
+                            else if (rstyle.articletitle.casevalue == "sentence")
+                                ClsCommonUtils.ChangeSentenceCase(range);
+                            break;
+                        }
+                    }
+                }
+                //Ends here
                 doc2.SaveAs2(flname2, Word.WdSaveFormat.wdFormatXMLDocument);
-                Word.Document cdoc = Globals.ThisAddIn.Application.CompareDocuments(doc1, doc2, Granularity: Word.WdGranularity.wdGranularityCharLevel);
+                Word.Document cdoc = Globals.ThisAddIn.Application.CompareDocuments(doc1, doc2, Granularity: Word.WdGranularity.wdGranularityCharLevel, CompareFormatting: false, CompareCaseChanges: true);
                 cdoc.ActiveWindow.Visible = false;
                 doc1.Close(); doc2.Close();
                 return cdoc;
@@ -734,6 +794,34 @@ namespace pdmrwordplugin.Functions
             catch { return null; }
         }
 
+
+        public static void ChangeSentenceCase(Word.Range objrng)
+        {
+            try
+            {
+                List<Rangepositions> upperranges = new List<Rangepositions>();                
+                foreach (Word.Range wrdrng in objrng.Words)
+                {
+                    if (wrdrng.Case == Word.WdCharacterCase.wdUpperCase)
+                    {
+                        upperranges.Add(new Rangepositions() { start = wrdrng.Start, end = wrdrng.End, rangetext = wrdrng.Text });
+                    }                    
+                }
+                objrng.Case = Word.WdCharacterCase.wdLowerCase;
+                objrng.Case = Word.WdCharacterCase.wdTitleSentence;
+                Word.Range tmprng = objrng.Duplicate;
+                foreach (Rangepositions pos in upperranges)
+                {
+                    tmprng.SetRange(pos.start, pos.end);
+                    if (tmprng.Text.ToLower() == pos.rangetext.ToLower())
+                    {
+                        tmprng.Case = Word.WdCharacterCase.wdUpperCase;
+                    }
+                }                
+            }
+            catch { }
+        }
+
         public static void ChangeTitleCase(Word.Range objrng)
         {
             try
@@ -753,7 +841,7 @@ namespace pdmrwordplugin.Functions
                     {
                         upperranges.Add(new Rangepositions() { start = wrdrng.Start, end = wrdrng.End, rangetext = wrdrng.Text }) ;
                     }
-                    else if(prepositions.Contains(wrdrng.Text.ToLower()))
+                    else if(prepositions.Contains(wrdrng.Text.ToLower().Trim()))
                     {
                         prepranges.Add(new Rangepositions() { start = wrdrng.Start, end = wrdrng.End, rangetext = wrdrng.Text });
                     }
