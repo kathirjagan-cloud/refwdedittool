@@ -56,8 +56,14 @@
                         <StackPanel Orientation="Vertical">
                             <StackPanel Orientation="Horizontal">
                                 <ComboBox x:Name="cmbStyles" VerticalAlignment="Center" Grid.Row="0" Height="30" MinWidth="200" 
-                                        materialDesign:TextFieldAssist.PrefixText="Reference Style: "
-                                    HorizontalAlignment="Left" Style="{StaticResource MaterialDesignOutlinedComboBox}" Padding="5" />
+                                        materialDesign:TextFieldAssist.PrefixText="Reference Style: " ItemsSource="{Binding Refstyleslist}" SelectedItem="{Binding SelRefStyle}"
+                                    HorizontalAlignment="Left" Style="{StaticResource MaterialDesignOutlinedComboBox}" Padding="5" >
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding name}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                                 <Button Style="{StaticResource MaterialDesignPaperButton}" BorderBrush="Gray" MinWidth="100" Height="30"  Margin="5,0,0,0" 
                                                 Command="{Binding StartRefProcess}">
                                     <StackPanel Orientation="Horizontal">

@@ -626,7 +626,7 @@ namespace pdmrwordplugin.Functions
         }
 
 
-        public static Word.Document GetCompareRangeDoc(string scomp1txt, string scomp2txt, string tagtitletxt)
+        public static Word.Document GetCompareRangeDoc(string scomp1txt, string scomp2txt, string tagtitletxt, referencestylesStyle wrefstyle)
         {
             Word.Document doc1 = null;
             Word.Document doc2 = null;
@@ -682,7 +682,7 @@ namespace pdmrwordplugin.Functions
 
                 if (!string.IsNullOrEmpty(titletxt))
                 {
-                    referencestylesStyle rstyle = ClsGlobals.gReferencestyles.style.FirstOrDefault();
+                    referencestylesStyle rstyle = wrefstyle;
                     if(rstyle.articletitle.casevalue=="title" || rstyle.articletitle.casevalue == "sentence")
                     {
                         range = doc2.Range().Duplicate;

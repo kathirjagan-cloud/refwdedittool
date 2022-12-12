@@ -39,7 +39,30 @@ namespace pdmrwordplugin.ViewModels
         public RelayCommand NextReferenceCmd { set; get; }
         public RelayCommand SearchOnlineTermCmd { set; get; }
         public RelayCommand ApplyStyledRefs { get; set; }
-       
+
+
+        private referencestylesStyle _SelRefStyle;
+        public referencestylesStyle SelRefStyle
+        {
+            get { return _SelRefStyle; }
+            set
+            {
+                _SelRefStyle = value;
+                RaisePropertyChanged("SelRefStyle");
+            }
+        }
+
+        private ObservableCollection<referencestylesStyle> _Refstyleslist;
+        public ObservableCollection<referencestylesStyle> Refstyleslist
+        {
+            get { return _Refstyleslist; }
+            set
+            {
+                _Refstyleslist = value;
+                RaisePropertyChanged("Refstyleslist");
+            }
+        }
+
         private bool _FirstRunRef;
         public bool FirstRunRef
         {
@@ -207,7 +230,7 @@ namespace pdmrwordplugin.ViewModels
                 Showprogress = false;
                 if (!t.IsFaulted && t.Result != null)
                 {
-                    string taggedres= GetFormatTextPubmed(t.Result, SelReference.Reftext);
+                    string taggedres = GetFormatTextPubmed(t.Result, SelReference.Reftext, SelRefStyle);
                     SelReference.ReftaggedText = taggedres;
                     if (!string.IsNullOrEmpty(taggedres)) { taggedres = taggedres.Replace("<title>", ""); taggedres = taggedres.Replace("</title>", ""); }
                     SelReference.RefStrucText = taggedres; //GetFormatTextPubmed(t.Result, SelReference.Reftext);
@@ -250,6 +273,7 @@ namespace pdmrwordplugin.ViewModels
                 {
                     orgtext = orgtext.ReplaceFirst("$$" + i.ToString() + "$$", strarr[i]);
                 }
+                orgtext = orgtext.Replace("&", "&amp;");
                 return flowdocstart + "<Paragraph>" + orgtext + "</Paragraph>" + flowdocend;
             }
             catch { return ""; }
@@ -307,7 +331,7 @@ namespace pdmrwordplugin.ViewModels
         }
 
 
-        private static string GetFormatTextPubmed(string xmlstr, string refstext)
+        private static string GetFormatTextPubmed(string xmlstr, string refstext, referencestylesStyle wstyle)
         {
             string flowdocstart = @"<FlowDocument xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">";
             string flowdocend = "</FlowDocument>";
@@ -315,7 +339,7 @@ namespace pdmrwordplugin.ViewModels
             {
                 ReferenceModel pubmedobj = GetPubmedObject(xmlstr);
                 if (pubmedobj == null) { return ""; }
-                referencestylesStyle refstyle = ClsGlobals.gReferencestyles.style.FirstOrDefault();
+                referencestylesStyle refstyle = wstyle;  
                 string refpattern = refstyle.pattern;
                 string authorpattern = GetAuthorsFormat(refstyle, pubmedobj.Authors.Count);
                 MatchCollection lastmatches = Regex.Matches(authorpattern, @"\[LastName\]");
@@ -417,6 +441,7 @@ namespace pdmrwordplugin.ViewModels
                 string frstnum = ""; string sndnum = "";
                 string tmppage = strpage;
                 string result = "";
+                if (string.IsNullOrEmpty(strpage)) { return ""; }
                 tmppage = tmppage.Replace("\u2013", "-");
                 tmppage = tmppage.Replace("\u2014", "-");
                 if (tmppage.Contains("-"))
@@ -608,7 +633,7 @@ namespace pdmrwordplugin.ViewModels
                     #endregion
                     
                     ClsCommonUtils.TRACK_OFF();
-                    Word.Document cmpdoc = ClsCommonUtils.GetCompareRangeDoc(SelReference.Reftext, scomptxt, SelReference.ReftaggedText);
+                    Word.Document cmpdoc = ClsCommonUtils.GetCompareRangeDoc(SelReference.Reftext, scomptxt, SelReference.ReftaggedText, SelRefStyle);
                     if (cmpdoc != null)
                     {
                         Word.Range cmprng = cmpdoc.Paragraphs[1].Range.Duplicate;
@@ -684,6 +709,11 @@ namespace pdmrwordplugin.ViewModels
             StartRefProcess = new RelayCommand(m => DoProcessReferences());
             if (_docreferences == null) { _docreferences = new List<ReferenceModel>(); }
             docreferences = new List<ReferenceModel>(_docreferences);
+            if (ClsGlobals.gReferencestyles.style != null && ClsGlobals.gReferencestyles.style.Count() > 0)
+            {
+                Refstyleslist = new ObservableCollection<referencestylesStyle>(ClsGlobals.gReferencestyles.style);
+                SelRefStyle = Refstyleslist.FirstOrDefault();
+            }
             FirstRunRef = true;
             ShowRefProc = false;
             MainTabIndex = 0;

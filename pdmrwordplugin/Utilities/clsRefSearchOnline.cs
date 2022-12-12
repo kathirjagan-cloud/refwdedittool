@@ -236,10 +236,20 @@ namespace pdmrwordplugin.Utilities
                     {
                         matchedxml = article.ToString();
                     }
-                    if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$YearFound$") && matchedelems.Contains("$TitleFound$"))
+                    if (matchedelems.Contains("$YearFound$") && matchedelems.Contains("$PageFound$") && matchedelems.Contains("$VolumeFound$") &&
+                        matchedelems.Contains("$TitleFound$"))
                     {
                         matchedxml = article.ToString();
                     }
+                    if (matchedelems.Contains("$YearFound$") && matchedelems.Contains("$PageFound$") && matchedelems.Contains("$VolumeFound$") &&
+                        matchedelems.Contains("$JTitleFound$"))
+                    {
+                        matchedxml = article.ToString();
+                    }
+                    if (matchedelems.Contains("$AuthorFound$") && matchedelems.Contains("$YearFound$") && matchedelems.Contains("$TitleFound$"))
+                    {
+                        matchedxml = article.ToString();
+                    }                    
                     if (!string.IsNullOrEmpty(matchedxml)) { break; }
                     // Ends here
                 }
@@ -266,11 +276,11 @@ namespace pdmrwordplugin.Utilities
             try
             {
                 ReferenceModel prcReference = ConsructPubQuery(sreference);
-                string[] queries = "<author>[au]+AND+<date>[dp]+AND+<volume>[vi]#<date>[dp]+AND+<volume>[vi]+AND+<pagination>[pg]#<author>[au]+AND+<date>[dp]+AND+<pagination>[pg]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[ta]#<title>#<title>+AND+<date>[dp]+AND+<volume>[vi]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[jt]#<author>[au]+AND+<date>[dp]<volume>[vi]+AND+<date>[dp]+AND+<containertitle>[jt]#<volume>[vi]+AND+<date>[dp]+AND+<containertitle>[ta]".Split('#');
+                string[] queries = "<author>[au]+AND+<date>[dp]+AND+<volume>[vi]#<title>#<date>[dp]+AND+<volume>[vi]+AND+<pagination>[pg]#<author>[au]+AND+<date>[dp]+AND+<pagination>[pg]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[ta]#<title>+AND+<date>[dp]+AND+<volume>[vi]#<author>[au]+AND+<date>[dp]+AND+<containertitle>[jt]#<author>[au]+AND+<date>[dp]<volume>[vi]+AND+<date>[dp]+AND+<containertitle>[jt]#<volume>[vi]+AND+<date>[dp]+AND+<containertitle>[ta]".Split('#');
                 string resultJson = "";
                 foreach (string query in queries)
                 {
-                    string sQuery = "esearch.fcgi?db=pubmed&usehistory=y&retmax=25&retmode=json";
+                    string sQuery = "esearch.fcgi?db=pubmed&usehistory=y&retmax=10&retmode=json";
                     string strtemp = query;
                     if (prcReference.Authors != null && prcReference.Authors.Count > 0)
                     {   
