@@ -7,9 +7,9 @@
           <button id="btnsetrefsel" imageMso="SelectObjects" size="large" label="Select \ Set Reference Area" onAction="BtnClick"/>
           <separator id="sep1"/>
           <menu id="mnuVanRefs" itemSize="large" imageMso="ClientAdvancedObjectsMenu" size="large" label="Vancouver references">
-            <button id="btnprocessXref" imageMso="ContactWebPage" label="Find X-ref citations" onAction="BtnClick" description="Find vancouver citations"/>
+            <button id="btnprocessXref" imageMso="ContactWebPage" label="Find X-ref citations" onAction="BtnClick" description="Find vancouver citations" visible="false"/>
             <menuSeparator id="mnusep1"/>
-            <button id="btnstylexref" imageMso="ContactWebPage" label="Style Citations" onAction="BtnClick" description="Style Citations"/>
+            <button id="btnstylexref" imageMso="ContactWebPage" label="Style Citations" onAction="BtnClick" description="Style Citations" visible="false"/>
             <menuSeparator id="mnusep2"/>
             <button id="btnprocessref" imageMso="ContactWebPage" label="Reference Structuring" onAction="BtnClick" description="Search references on Pubmed and structure the references"/>
           </menu>

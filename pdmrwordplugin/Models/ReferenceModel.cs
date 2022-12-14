@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,5 +33,7 @@ namespace pdmrwordplugin.Models
         public string date { get; set; }
         public string issue { get; set; }
         public string pages { get; set; }
+        public string doi { get; set; }
+        public string pubid { get; set; }
     }
 }

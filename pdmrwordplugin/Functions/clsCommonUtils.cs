@@ -632,13 +632,22 @@ namespace pdmrwordplugin.Functions
             Word.Document doc2 = null;
             try
             {
+                string tmpcomp2 = scomp2txt;
+                tmpcomp2 = tmpcomp2.Replace("()", "");
+                tmpcomp2 = tmpcomp2.Replace("  ", " ");
+                tmpcomp2 = tmpcomp2.Replace("?.", "?");
+                tmpcomp2 = tmpcomp2.Replace("!.", "!");
+                tmpcomp2 = tmpcomp2.Replace(" .", ".");
+                tmpcomp2 = tmpcomp2.Replace(" ,", ",");
+                tmpcomp2 = tmpcomp2.Replace("..", ".");
+                tmpcomp2 = tmpcomp2.Replace("&amp;", "&");
                 string flname1 = System.IO.Path.GetTempPath() + "comp1.docx";
                 string flname2 = System.IO.Path.GetTempPath() + "comp2.docx";
                 doc1 = Globals.ThisAddIn.Application.Documents.Add(Visible: false);
-                doc1.Range().Paragraphs[1].Range.Text = scomp1txt;
+                doc1.Range().Paragraphs[1].Range.Text = scomp1txt.Replace("\r","");
                 doc1.SaveAs2(flname1,Word.WdSaveFormat.wdFormatXMLDocument);                
                 doc2 = Globals.ThisAddIn.Application.Documents.Add(Visible: false);
-                doc2.Range().Paragraphs[1].Range.Text = scomp2txt;
+                doc2.Range().Paragraphs[1].Range.Text = tmpcomp2;
                 //Do formatting
                 Word.Range range = doc2.Range().Duplicate;
                 range.Find.ClearFormatting();
